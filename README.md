@@ -1,6 +1,6 @@
-# Numerical Laplace Transform Inversion Methods
+# Numerical Inverse Laplace Transform Methods
 
-This repository is used to benchmark different algorithms for the numerical Laplace Inversion. This work was originally developed in [Oliveira (2021)](https://spiral.imperial.ac.uk/).
+This repository is used to benchmark different algorithms for the numerical Laplace Transform Inversion. This work was partly developed in [Oliveira (2021)](https://spiral.imperial.ac.uk/).
 
 ## Stehfest Algorithm
 
