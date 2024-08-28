@@ -4,7 +4,7 @@ This repository is used to benchmark different algorithms for the numerical Lapl
 
 ## Stehfest Algorithm
 
-The algorithm described in [Stehfest, H. (1970)](https://doi.org/10.1145/361953.361969) is implemented in `StehfestAlgorithm` class. To exemplify the results, the entries entry for `f(t) = 1/sqrt(PI*t)` in Table 1 of the paper is obtained by numerically inverting the Laplace Transform of `F(s) = 1/sqrt(s)` and is reproduced below:
+The algorithm described in [Stehfest, H. (1970)](https://doi.org/10.1145/361953.361969) is implemented in `StehfestAlgorithm` class. To exemplify the results, the entries entry for `f(t) = 1/sqrt(PI*t)` in Table 1 of the original paper are obtained by numerically inverting the Laplace Transform of `F(s) = 1/sqrt(s)` and are listed below:
 
 | t  | fa(t)          | fn(t)          | err               |
 |----|----------------|----------------|-------------------|
