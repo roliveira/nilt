@@ -1,109 +1,86 @@
 /*
     Harald Stehfest. 1970. Algorithm 368: Numerical inversion of Laplace transforms [D5]. 
-    Commun. ACM 13, 1 (Jan. 1970), 47–49. DOI:https://doi.org/10.1145/361953.361969
+    Commun. ACM 13, 1 (Jan. 1970), 47-49. DOI:https://doi.org/10.1145/361953.361969
 */
 #ifndef NILT_STEHFEST_HEADER
 #define NILT_STEHFEST_HEADER
 
+#include <cmath>
+#include <stdexcept>
 #include <vector>
 
-#include "invlap.hpp"
+namespace nilt {
 
-
-class StehfestAlgorithm: public InverseLaplaceAlgorithm
+class Stehfest
 {
-    public:
+public:
+    static constexpr const char* name = "Stehfest";
 
-    double ln2                = 0.69314718056;  // direct evaluation of ln(2)
-    int    stehfest_steps     = 18;             // using the 18th-first stehfest coefficients, as suggested in Stehfest (1970)
+    int N = 18;  // number of terms (must be even)
 
-    std::vector<double> stehfest_coeff{         // precomputed coefficients of V_i using StehfestCoefficients function
-        +4.960317460317460E-05, -6.095734126984128E-01, +2.745940476190476E+02,
-        -2.630695674603174E+04, +9.572572013888889E+05, -1.735869484583333E+07,
-        +1.824212226472222E+08, -1.218533288309127E+09, +5.491680025283035E+09,
-        -1.736213111520684E+10, +3.945509690352738E+10, -6.526651698517500E+10,
-        +7.873006832822083E+10, -6.855644419612083E+10, +4.198434347505357E+10,
-        -1.716093471183929E+10, +4.204550039102679E+09, -4.671722265669643E+08
-    };
+    // Evaluate the inverse Laplace transform at time t.
+    // Fs must be callable as Fs(double) -> double.
+    template<typename F>
+    double operator()(F&& Fs, double t) const
+    {
+        if (t <= 0.0)
+            throw std::domain_error("Stehfest: t must be positive");
 
-    StehfestAlgorithm(void);
+        auto coeff = coefficients(N);
+        double ln2t = std::log(2.0) / t;
+        double s = 0.0;
+        double y = 0.0;
 
-    double Evaluate(double t, double (*func)(double));
-    std::vector<double> StehfestCoefficients(int N);
-    double Factorial(int N);
+        for (double c : coeff)
+        {
+            s += ln2t;
+            y += c * Fs(s);
+        }
 
+        return ln2t * y;
+    }
+
+    // Compute Stehfest coefficients V_i for i=1..N.
+    static std::vector<double> coefficients(int N)
+    {
+        int N2 = N / 2;
+        std::vector<double> V(N);
+
+        int sign = (N2 % 2 != 0) ? -1 : 1;
+
+        for (int i = 0; i < N; ++i)
+        {
+            int kmin = (i + 2) / 2;
+            int kmax = std::min(i + 1, N2);
+
+            double sum = 0.0;
+            sign = -sign;
+
+            for (int k = kmin; k <= kmax; ++k)
+            {
+                sum += std::pow(static_cast<double>(k), N2)
+                     * factorial(2 * k)
+                     / (factorial(k) * factorial(k - 1)
+                        * factorial(N2 - k) * factorial(i + 1 - k)
+                        * factorial(2 * k - i - 1));
+            }
+
+            V[i] = sign * sum;
+        }
+
+        return V;
+    }
+
+private:
+    static double factorial(int n)
+    {
+        double x = 1.0;
+        for (int i = 2; i <= n; ++i)
+            x *= i;
+        return x;
+    }
 };
 
-StehfestAlgorithm::StehfestAlgorithm(void)
-: InverseLaplaceAlgorithm("Stehfest") {};
-
-double StehfestAlgorithm::Evaluate(double t, double (*func)(double))
-{
-    double ln2t = this->ln2/t;
-    double s    = 0.0;
-    double y    = 0.0;
-
-    for (double c: this->stehfest_coeff)
-    {
-        s += ln2t;
-        y += c*func(s);
-    }
-
-    return ln2t*y;
-}
-
-std::vector<double> StehfestAlgorithm::StehfestCoefficients(int N) 
-{ 
-    int N2 = static_cast<int>(N/2); 
-    int NV = 2*N2; 
-
-    std::vector<double> H = std::vector<double>(NV);
-
-    int sign = 1; 
-
-    if ((N2%2) != 0) 
-    {
-        sign = -1;
-    }
-
-    for (int i=0; i<NV; ++i)
-    {
-        int kmin = static_cast<int>((i+2)/2);
-        int kmax = i+1; 
-
-        if (kmax > N2) 
-        {
-            kmax = N2;
-        }
-            
-        H[i] = 0;
-        sign = -sign;
-
-        for (int k=kmin; k<=kmax; ++k) 
-        { 
-            H[i] += (std::pow(k, N2)/this->Factorial(k))*(this->Factorial(2*k)/this->Factorial(2*k-i-1))/this->Factorial(N2-k)/this->Factorial(k-1)/this->Factorial(i+1-k);
-        } 
-
-        H[i] *= sign; 
-    }
-
-    return H;
-}
-
-double StehfestAlgorithm::Factorial(int N) 
-{ 
-    double x = 1.0;
-
-    if (N>1) 
-    { 
-        for (int i=2; i<=N; ++i) 
-        {
-            x = i*x; 
-        }
-    } 
-
-    return x; 
-} 
-
+} // namespace nilt
 
 #endif // NILT_STEHFEST_HEADER

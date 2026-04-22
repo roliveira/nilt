@@ -1,10 +1,3 @@
-# IDE settings 
-.vscode
-.idea
-
-# Removing the build folder
-build/
-
 # Prerequisites
 *.d
 
@@ -18,10 +11,18 @@ build/
 *.gch
 *.pch
 
+# Linker files
+*.ilk
+
+# Debugger Files
+*.pdb
+
 # Compiled Dynamic libraries
 *.so
 *.dylib
 *.dll
+*.so.*
+
 
 # Fortran module files
 *.mod
@@ -37,3 +38,44 @@ build/
 *.exe
 *.out
 *.app
+
+# Build directories
+build/
+Build/
+build-*/
+**/build/
+
+# CMake generated files
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+install_manifest.txt
+compile_commands.json
+
+# Temporary files
+*.tmp
+*.log
+*.bak
+*.swp
+
+# vcpkg
+vcpkg_installed/
+
+# debug information files
+*.dwo
+
+# test output & cache
+Testing/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+python/nilt/_nilt*.so
+python/build/
+.pytest_cache/
+.cache/
+*.egg-info/
+dist/
+_skbuild/

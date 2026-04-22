@@ -1,0 +1,36 @@
+[project]
+name = "nilt"
+version = "1.0.0"
+description = "NILT - Numerical Inverse Laplace Transform (Stehfest, Talbot, and De Hoog algorithms)"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+dependencies = ["numpy"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+
+[project.optional-dependencies]
+dev = ["pytest", "scipy"]
+plot = ["matplotlib", "scipy"]
+
+[build-system]
+requires = ["scikit-build-core>=0.10", "pybind11>=2.12"]
+build-backend = "scikit_build_core.build"
+
+[tool.scikit-build]
+cmake.source-dir = "python"
+wheel.packages = ["python/nilt"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
