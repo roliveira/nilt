@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
-project(nilt VERSION 1.0 LANGUAGES CXX)
+set(NILT_VERSION "1.0.0")
+project(nilt VERSION ${NILT_VERSION} LANGUAGES CXX)
 
 # options
 option(NILT_BUILD_EXAMPLES  "Build the example executables"  ON )

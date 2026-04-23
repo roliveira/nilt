@@ -34,3 +34,24 @@ wheel.packages = ["python/nilt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.semantic_release]
+# Keep pyproject.toml and CMakeLists.txt in lockstep.
+version_toml = ["pyproject.toml:project.version"]
+version_variables = ["CMakeLists.txt:NILT_VERSION"]
+commit_message = "chore(release): v{version} [skip ci]"
+tag_format = "v{version}"
+major_on_zero = false
+allow_zero_version = false
+
+[tool.semantic_release.branches.main]
+match = "main"
+prerelease = false
+
+[tool.semantic_release.changelog]
+exclude_commit_patterns = ['''chore\(release\):''']
+
+[tool.semantic_release.commit_parser_options]
+allowed_tags = ["feat", "fix", "perf", "refactor", "build", "ci", "docs", "style", "test", "chore"]
+minor_tags = ["feat"]
+patch_tags = ["fix", "perf"]
