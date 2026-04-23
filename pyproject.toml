@@ -1,6 +1,6 @@
 [project]
 name = "nilt"
-version = "1.3.0"
+version = "1.4.0"
 description = "NILT - Numerical Inverse Laplace Transform (Stehfest, Talbot, and De Hoog algorithms)"
 readme = "README.md"
 license = {text = "MIT"}

@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.4.0 (2026-04-23)
+
+### Features
+
+- Add gh action for JOSS paper
+  ([`7c3af11`](https://github.com/roliveira/nilt/commit/7c3af11a22c26bf934b6cd4e3ad020fd9ab940e5))
+
+
 ## v1.3.0 (2026-04-23)
 
 ### Bug Fixes
