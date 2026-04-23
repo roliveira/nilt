@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708531.svg)](https://doi.org/10.5281/zenodo.19708531)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708530.svg)](https://doi.org/10.5281/zenodo.19708530)
 
 # Numerical Inverse Laplace Transform Methods
 
