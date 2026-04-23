@@ -1,3 +1,5 @@
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708531.svg)](https://doi.org/10.5281/zenodo.19708531)
+
 # Numerical Inverse Laplace Transform Methods
 
 A numerical inversion of Laplace transforms library implemented in C++ library with Python bindings. 
