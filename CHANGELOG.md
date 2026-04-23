@@ -2,6 +2,20 @@
 
 <!-- version list -->
 
+## v1.4.1 (2026-04-23)
+
+### Bug Fixes
+
+- Merged and decorated workflows
+  ([`b36629f`](https://github.com/roliveira/nilt/commit/b36629f2376ca9d5670fabe03a9be9798255ab61))
+
+- Missing references section
+  ([`88663e4`](https://github.com/roliveira/nilt/commit/88663e45786801e7b29565f4edf11444de0ec6ce))
+
+- Typo in paper.md
+  ([`016b246`](https://github.com/roliveira/nilt/commit/016b246af1f5eeb6cad4c12acca98426702cdd21))
+
+
 ## v1.4.0 (2026-04-23)
 
 ### Features
