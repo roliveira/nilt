@@ -1,0 +1,81 @@
+name: Test and Release
+
+permissions:
+  contents: read
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  cpp-tests:
+    name: 🖥️ C++ tests (CMake + CTest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: 🛒 checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: ⚙️ configure
+        run: cmake -S . -B build -DNILT_BUILD_TESTS=ON -DNILT_BUILD_EXAMPLES=ON
+
+      - name: 🏗️ build
+        run: cmake --build build --parallel
+
+      - name: 🧪 test
+        run: ctest --test-dir build --output-on-failure
+
+  python-tests:
+    name: 🐍 Python tests (pytest)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.11", "3.12", "3.13"]
+    steps:
+      - name: 🛒 checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: ⚙️ install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          enable-cache: true
+
+      - name: 🏗️ install package and test dependencies
+        run: uv sync --extra dev
+
+      - name: 🧪 run pytest
+        run: uv run pytest -v
+
+  release:
+    name: 🚀 release
+    needs: [cpp-tests, python-tests]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
+    runs-on: ubuntu-latest
+
+    concurrency:
+      group: release-${{ github.ref_name }}
+      cancel-in-progress: false
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: 🛒 checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: 🔄 force branch to workflow sha
+        run: git reset --hard ${{ github.sha }}
+
+      - name: 🚀 python semantic release
+        uses: python-semantic-release/python-semantic-release@350c48fcb3ffcdfd2e0a235206bc2ecea6b69df0 # v10.5.3
+        id: release
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          git_committer_name: "github-actions"
+          git_committer_email: "actions@users.noreply.github.com"

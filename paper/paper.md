@@ -50,6 +50,7 @@ The Python bindings are built with pybind11 and accept both scalars and NumPy ar
 Many problems in physics and engineering are easier to solve in the Laplace domain than in the time domain. Groundwater drawdown, heat conduction in semi-infinite solids, diffusion from spheres and cylinders, viscoelastic creep are great examples that have closed-form Laplace-domain solutions that are difficult or impossible to invert analytically.
 
 Existing tools are scattered:
+
 - MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
 - Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementaiton is far slower when you need to invert at thousands of points.
 - The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the applicatoin (transient spectroscopy). 
@@ -124,3 +125,5 @@ NILT was developed during a PhD on reactive transport modelling using continuous
 # AI usage disclosure
 
 AI tools were used for code refactoring, and documentation editing. All scientific content, algorithm implementations, and mathematical formulations are the author's own work.
+
+# References
