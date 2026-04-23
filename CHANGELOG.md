@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.1 (2026-04-23)
+
+### Bug Fixes
+
+- Change to cite all versions format
+  ([`612d3bf`](https://github.com/roliveira/nilt/commit/612d3bf190da78dda649cd4aca1ac310c2435c5c))
+
+
 ## v1.2.0 (2026-04-23)
 
 ### Features
