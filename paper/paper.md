@@ -125,3 +125,5 @@ NILT was developed during a PhD on reactive transport modelling using continuous
 # AI usage disclosure
 
 AI tools were used for code refactoring, and documentation editing. All scientific content, algorithm implementations, and mathematical formulations are the author's own work.
+
+# References
