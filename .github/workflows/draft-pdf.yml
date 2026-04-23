@@ -1,4 +1,4 @@
-name: draft JOSS PDF
+name: Draft JOSS PDF
 
 on: 
   push:
@@ -12,22 +12,22 @@ permissions:
 jobs:
   paper:
     runs-on: ubuntu-latest
-    name: paper draft
+    name: 📄 paper draft
     
     permissions:
         contents: write
 
     steps:
-      - name: Checkout
+      - name: 🛒 checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
-      - name: Build draft PDF
+      - name: 📄 build draft pdf
         uses: openjournals/openjournals-draft-action@85a18372e48f551d8af9ddb7a747de685fbbb01c # v1.0
         with:
           journal: joss
           paper-path: paper/paper.md
 
-      - name: upload
+      - name: ⬆️ upload
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
 
         with:
