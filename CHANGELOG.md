@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v1.2.0 (2026-04-23)
+
+### Features
+
+- Added DOI and CITATION.cff
+  ([`0cce13d`](https://github.com/roliveira/nilt/commit/0cce13d286a69881fe49b26c4e612ba94d64b9c3))
+
+
 ## v1.1.0 (2026-04-23)
 
 ### Features

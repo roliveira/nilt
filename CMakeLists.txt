@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.14)
-set(NILT_VERSION "1.1.0")
+set(NILT_VERSION "1.2.0")
 project(nilt VERSION ${NILT_VERSION} LANGUAGES CXX)
 
 # options
