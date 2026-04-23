@@ -1,8 +1,9 @@
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708530.svg)](https://doi.org/10.5281/zenodo.19708530)
 
-# Numerical Inverse Laplace Transform Methods
+# NILT: Numerical Inverse Laplace Transform Methods
 
-A numerical inversion of Laplace transforms library implemented in C++ library with Python bindings. 
+A C++ header-only library (with Python bindings) for numerically inverting Laplace transforms. Three algorithms are provided: Gaver-Stehfest, fixed Talbot, and De Hoog et al. All share the same callable interface in both languages.
+
 This work was partly developed in [Oliveira, R. (2021)](https://doi.org/10.25560/92253).
 
 ## Quick Start
@@ -84,10 +85,10 @@ The [verification suite](examples/verification/) evaluates all methods against k
 
 | # | f(t) | F(s) | Source |
 |---|------|------|--------|
-| 1 | $e^{-t}$ | $1/(s+1)$ | Standard |
-| 2 | $1/\sqrt{\pi t}$ | $1/\sqrt{s}$ | Stehfest (1970) |
-| 3 | $-\gamma - \ln t$ | $\ln(s)/s$ | Stehfest (1970) |
-| 4 | $t^3/6$ | $s^{-4}$ | Stehfest (1970) |
+| 1 | $1/\sqrt{\pi t}$ | $1/\sqrt{s}$ | Stehfest (1970) |
+| 2 | $-\gamma - \ln t$ | $\ln(s)/s$ | Stehfest (1970) |
+| 3 | $t^3/6$ | $s^{-4}$ | Stehfest (1970) |
+| 4 | $e^{-t}$ | $1/(s+1)$ | Standard |
 | 5 | $\sin\sqrt{2t}$ | $\sqrt{\pi/(2s^3)}\,e^{-1/(2s)}$ | Stehfest (1970) |
 | 6 | $t$ | $1/s^2$ | Abate & Whitt |
 | 7 | $t\,e^{-t}$ | $1/(s+1)^2$ | Abate & Whitt |
