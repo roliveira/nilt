@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708530.svg)](https://doi.org/10.5281/zenodo.19708530)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.19708530.svg)](https://doi.org/10.5281/zenodo.19708530) [![status](https://joss.theoj.org/papers/01af96de50bd5e2aa96b6658243f9b9c/status.svg)](https://joss.theoj.org/papers/01af96de50bd5e2aa96b6658243f9b9c)
 
 # NILT: Numerical Inverse Laplace Transform Methods
 
