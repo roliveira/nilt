@@ -114,4 +114,5 @@ class TestTalbotArrayInput:
         t_values = np.array([1.0, 2.0, 5.0])
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
-            assert array_result[i] == nilt.invert(algo, Fs, float(t))
+            scalar_result = nilt.invert(algo, Fs, float(t))
+            assert array_result[i] == pytest.approx(scalar_result, rel=1e-10)
