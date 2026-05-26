@@ -38,6 +38,7 @@ if(NILT_BUILD_TESTS)
         tests/test_verification.cpp
     )
     target_link_libraries(nilt_tests PRIVATE nilt Catch2::Catch2WithMain)
+    target_include_directories(nilt_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
     if(NOT MSVC)
         target_compile_options(nilt_tests PRIVATE -Wall -Wextra -Wpedantic)
     endif()

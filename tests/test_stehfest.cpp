@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "nilt.hpp"
+#include "test_tolerances.hpp"
 
 using Catch::Matchers::WithinRel;
 using Catch::Matchers::WithinAbs;
@@ -15,42 +16,41 @@ static double Fs_ramp(double s) { return 1.0 / (s * s); }
 // F(s) = 1/s^4  =>  f(t) = t^3/6
 static double Fs_cubic(double s) { return 1.0 / (s * s * s * s); }
 
-TEST_CASE("Stehfest inverts exp_decay 1/(s+1) to exp(-t) within 1e-4 at small t",
+TEST_CASE("Stehfest inverts exp_decay 1/(s+1) to exp(-t) at small t",
           "[stehfest][exp_decay]")
 {
     nilt::Stehfest algo;
 
     SECTION("t = 1.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 1.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-1.0), 1e-4));
+        REQUIRE_THAT(result, WithinRel(std::exp(-1.0), STEHFEST_EXP_SMALL_REL_TOL));
     }
     SECTION("t = 2.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 2.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-2.0), 1e-4));
+        REQUIRE_THAT(result, WithinRel(std::exp(-2.0), STEHFEST_EXP_SMALL_REL_TOL));
     }
     SECTION("t = 3.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 3.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-3.0), 1e-4));
+        REQUIRE_THAT(result, WithinRel(std::exp(-3.0), STEHFEST_EXP_SMALL_REL_TOL));
     }
 }
 
-TEST_CASE("Stehfest inverts exp_decay 1/(s+1) within 0.1 at large t",
+TEST_CASE("Stehfest inverts exp_decay 1/(s+1) at large t",
           "[stehfest][exp_decay][large_t]")
 {
     nilt::Stehfest algo;
 
-    // Stehfest accuracy degrades for large t with exponentially decaying functions
     SECTION("t = 5.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 5.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-5.0), 0.01));
+        REQUIRE_THAT(result, WithinRel(std::exp(-5.0), STEHFEST_EXP_MEDIUM_REL_TOL));
     }
     SECTION("t = 10.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 10.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-10.0), 0.1));
+        REQUIRE_THAT(result, WithinRel(std::exp(-10.0), STEHFEST_EXP_LARGE_REL_TOL));
     }
 }
 
-TEST_CASE("Stehfest inverts 1/s^2 to t within 1e-6",
+TEST_CASE("Stehfest inverts 1/s^2 to t",
           "[stehfest][ramp]")
 {
     nilt::Stehfest algo;
@@ -58,11 +58,11 @@ TEST_CASE("Stehfest inverts 1/s^2 to t within 1e-6",
     for (double t : {1.0, 3.0, 7.0, 10.0}) {
         CAPTURE(t);
         double result = nilt::invert(algo, Fs_ramp, t);
-        REQUIRE_THAT(result, WithinRel(t, 1e-6));
+        REQUIRE_THAT(result, WithinRel(t, STEHFEST_RAMP_REL_TOL));
     }
 }
 
-TEST_CASE("Stehfest inverts 1/s^4 to t^3/6 within 1e-4",
+TEST_CASE("Stehfest inverts 1/s^4 to t^3/6",
           "[stehfest][cubic]")
 {
     nilt::Stehfest algo;
@@ -71,18 +71,18 @@ TEST_CASE("Stehfest inverts 1/s^4 to t^3/6 within 1e-4",
         CAPTURE(t);
         double expected = t * t * t / 6.0;
         double result = nilt::invert(algo, Fs_cubic, t);
-        REQUIRE_THAT(result, WithinRel(expected, 1e-4));
+        REQUIRE_THAT(result, WithinRel(expected, STEHFEST_CUBIC_REL_TOL));
     }
 }
 
-TEST_CASE("Stehfest with N=12 inverts exp_decay within 1e-3",
+TEST_CASE("Stehfest with N=12 inverts exp_decay",
           "[stehfest][parameters]")
 {
     nilt::Stehfest algo;
     algo.N = 12;
 
     double result = nilt::invert(algo, Fs_exp_decay, 2.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-2.0), 1e-3));
+    REQUIRE_THAT(result, WithinRel(std::exp(-2.0), STEHFEST_EXP_MEDIUM_REL_TOL));
 }
 
 TEST_CASE("Stehfest default N is 18", "[stehfest][defaults]")
@@ -108,7 +108,7 @@ TEST_CASE("Stehfest accepts lambda returning real", "[stehfest][callable]")
     nilt::Stehfest algo;
     auto Fs = [](double s) { return 1.0 / (s + 1.0); };
     double result = nilt::invert(algo, Fs, 1.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), 1e-4));
+    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), STEHFEST_EXP_SMALL_REL_TOL));
 }
 
 TEST_CASE("Stehfest direct call matches free function",

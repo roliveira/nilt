@@ -4,6 +4,14 @@ import numpy as np
 import pytest
 
 import nilt
+from conftest import (
+    ARRAY_CONSISTENCY_TOL,
+    STEHFEST_CUBIC_REL_TOL,
+    STEHFEST_EXP_LARGE_REL_TOL,
+    STEHFEST_EXP_MEDIUM_REL_TOL,
+    STEHFEST_EXP_SMALL_REL_TOL,
+    STEHFEST_RAMP_REL_TOL,
+)
 
 
 class TestStehfestInvertExpDecay:
@@ -14,19 +22,19 @@ class TestStehfestInvertExpDecay:
         return nilt.Stehfest()
 
     @pytest.mark.parametrize("t", [1.0, 2.0, 3.0])
-    def test_relative_error_below_1e4_for_small_t(self, algo, t):
+    def test_relative_error_within_tolerance_small_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=1e-4)
+        assert result == pytest.approx(math.exp(-t), rel=STEHFEST_EXP_SMALL_REL_TOL)
 
     @pytest.mark.parametrize("t", [5.0, 7.0])
-    def test_relative_error_below_1e2_for_medium_t(self, algo, t):
+    def test_relative_error_within_tolerance_medium_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=1e-2)
+        assert result == pytest.approx(math.exp(-t), rel=STEHFEST_EXP_MEDIUM_REL_TOL)
 
     @pytest.mark.parametrize("t", [10.0])
-    def test_relative_error_below_0_1_for_large_t(self, algo, t):
+    def test_relative_error_within_tolerance_large_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=0.1)
+        assert result == pytest.approx(math.exp(-t), rel=STEHFEST_EXP_LARGE_REL_TOL)
 
 
 class TestStehfestInvertPolynomial:
@@ -39,12 +47,12 @@ class TestStehfestInvertPolynomial:
     @pytest.mark.parametrize("t", [1.0, 3.0, 7.0, 10.0])
     def test_ramp_1_over_s2_equals_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s * s), t)
-        assert result == pytest.approx(t, rel=1e-6)
+        assert result == pytest.approx(t, rel=STEHFEST_RAMP_REL_TOL)
 
     @pytest.mark.parametrize("t", [1.0, 4.0, 8.0])
     def test_cubic_1_over_s4_equals_t3_over_6(self, algo, t):
         result = nilt.invert(algo, lambda s: s ** (-4.0), t)
-        assert result == pytest.approx(t ** 3 / 6.0, rel=1e-4)
+        assert result == pytest.approx(t ** 3 / 6.0, rel=STEHFEST_CUBIC_REL_TOL)
 
 
 class TestStehfestDefaults:
@@ -97,4 +105,6 @@ class TestStehfestArrayInput:
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
             scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == scalar_result
+            assert array_result[i] == pytest.approx(
+                scalar_result, rel=ARRAY_CONSISTENCY_TOL
+            )

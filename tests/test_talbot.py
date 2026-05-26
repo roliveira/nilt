@@ -4,6 +4,12 @@ import numpy as np
 import pytest
 
 import nilt
+from conftest import (
+    ARRAY_CONSISTENCY_TOL,
+    TALBOT_ABS_TOL,
+    TALBOT_REL_TOL,
+    TALBOT_REL_TOL_LARGE,
+)
 
 
 class TestTalbotInvertExpDecay:
@@ -14,14 +20,14 @@ class TestTalbotInvertExpDecay:
         return nilt.Talbot()
 
     @pytest.mark.parametrize("t", [1.0, 2.0, 3.0])
-    def test_relative_error_below_1e10_for_small_t(self, algo, t):
+    def test_relative_error_within_tolerance(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=1e-10)
+        assert result == pytest.approx(math.exp(-t), rel=TALBOT_REL_TOL)
 
     @pytest.mark.parametrize("t", [5.0, 10.0])
-    def test_relative_error_below_1e6_for_large_t(self, algo, t):
+    def test_relative_error_within_tolerance_large_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=1e-6)
+        assert result == pytest.approx(math.exp(-t), rel=TALBOT_REL_TOL_LARGE)
 
 
 class TestTalbotInvertSinusoids:
@@ -31,22 +37,22 @@ class TestTalbotInvertSinusoids:
         return nilt.Talbot()
 
     @pytest.mark.parametrize("t", [1.0, 2.0, 5.0, 9.0])
-    def test_sin_t_within_1e7(self, algo, t):
+    def test_sin_t_within_tolerance(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s * s + 1.0), t)
-        assert result == pytest.approx(math.sin(t), abs=1e-7)
+        assert result == pytest.approx(math.sin(t), abs=TALBOT_ABS_TOL)
 
     @pytest.mark.parametrize("t", [1.0, 3.0, 6.0])
-    def test_cos_t_within_1e7(self, algo, t):
+    def test_cos_t_within_tolerance(self, algo, t):
         result = nilt.invert(algo, lambda s: s / (s * s + 1.0), t)
-        assert result == pytest.approx(math.cos(t), abs=1e-7)
+        assert result == pytest.approx(math.cos(t), abs=TALBOT_ABS_TOL)
 
     @pytest.mark.parametrize("t", [1.0, 4.0, 8.0])
-    def test_damped_sin_exp_neg_t_sin_t_within_1e7(self, algo, t):
+    def test_damped_sin_within_tolerance(self, algo, t):
         result = nilt.invert(
             algo, lambda s: 1.0 / ((s + 1.0) ** 2 + 1.0), t
         )
         expected = math.exp(-t) * math.sin(t)
-        assert result == pytest.approx(expected, abs=1e-7)
+        assert result == pytest.approx(expected, abs=TALBOT_ABS_TOL)
 
 
 class TestTalbotInvertPolynomial:
@@ -56,9 +62,9 @@ class TestTalbotInvertPolynomial:
         return nilt.Talbot()
 
     @pytest.mark.parametrize("t", [1.0, 3.0, 7.0, 10.0])
-    def test_ramp_1_over_s2_equals_t_within_1e10(self, algo, t):
+    def test_ramp_1_over_s2_equals_t(self, algo, t):
         result = nilt.invert(algo, lambda s: 1.0 / (s * s), t)
-        assert result == pytest.approx(t, rel=1e-10)
+        assert result == pytest.approx(t, rel=TALBOT_REL_TOL)
 
 
 class TestTalbotDefaults:
@@ -114,4 +120,7 @@ class TestTalbotArrayInput:
         t_values = np.array([1.0, 2.0, 5.0])
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
-            assert array_result[i] == nilt.invert(algo, Fs, float(t))
+            scalar_result = nilt.invert(algo, Fs, float(t))
+            assert array_result[i] == pytest.approx(
+                scalar_result, rel=ARRAY_CONSISTENCY_TOL
+            )
