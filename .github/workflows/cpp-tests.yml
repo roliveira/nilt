@@ -1,0 +1,37 @@
+name: C++ Tests
+
+permissions:
+  contents: read
+
+on:
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+  workflow_call:
+
+jobs:
+  cpp-tests:
+    name: 🖥️ C++ (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - ubuntu-24.04-arm
+          - macos-latest
+          - macos-15-intel
+          - windows-latest
+          - windows-11-arm
+    steps:
+      - name: 🛒 checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+      - name: ⚙️ configure
+        run: cmake -S . -B build -DNILT_BUILD_TESTS=ON -DNILT_BUILD_EXAMPLES=ON
+
+      - name: 🏗️ build
+        run: cmake --build build --parallel
+
+      - name: 🧪 test
+        run: ctest --test-dir build --output-on-failure
