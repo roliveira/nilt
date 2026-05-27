@@ -1,21 +1,27 @@
-cmake_minimum_required(VERSION 3.14)
+cmake_minimum_required(VERSION 3.19)
 set(NILT_VERSION "1.4.1")
 project(nilt VERSION ${NILT_VERSION} LANGUAGES CXX)
 
 # options
-option(NILT_BUILD_EXAMPLES  "Build the example executables"  ON )
-option(NILT_BUILD_TESTS     "Build and register CTest tests" OFF)
+option(NILT_BUILD_EXAMPLES      "Build the example executables"       ON )
+option(NILT_BUILD_TESTS         "Build and register CTest tests"      OFF)
+option(NILT_BUILD_VERIFICATION  "Build the verification executables"  OFF)
 
 # header-only library target
 add_library(nilt INTERFACE)
 add_library(nilt::nilt ALIAS nilt)
 
 target_include_directories(nilt INTERFACE
-    $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 
 target_compile_features(nilt INTERFACE cxx_std_14)
+
+add_library(nilt_warnings INTERFACE)
+if(NOT MSVC)
+    target_compile_options(nilt_warnings INTERFACE -Wall -Wextra -Wpedantic)
+endif()
 
 # tests
 if(NILT_BUILD_TESTS)
@@ -37,52 +43,42 @@ if(NILT_BUILD_TESTS)
         tests/test_dehoog.cpp
         tests/test_verification.cpp
     )
-    target_link_libraries(nilt_tests PRIVATE nilt Catch2::Catch2WithMain)
-    target_include_directories(nilt_tests PRIVATE ${PROJECT_SOURCE_DIR}/tests)
-    if(NOT MSVC)
-        target_compile_options(nilt_tests PRIVATE -Wall -Wextra -Wpedantic)
-    endif()
+    target_link_libraries(nilt_tests PRIVATE nilt nilt_warnings Catch2::Catch2WithMain)
+    target_include_directories(nilt_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 
     catch_discover_tests(nilt_tests)
 endif()
 
+# verification
+if(NILT_BUILD_VERIFICATION)
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/verification")
+
+    add_executable(verification          verification/verification.cpp)
+    add_executable(benchmark_timing      verification/benchmark_timing.cpp)
+
+    target_link_libraries(verification          PRIVATE nilt nilt_warnings)
+    target_link_libraries(benchmark_timing      PRIVATE nilt nilt_warnings)
+
+    target_include_directories(verification PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}/verification"
+    )
+endif()
+
 # examples
 if(NILT_BUILD_EXAMPLES)
-    #   target_name                   source_path
-    set(_nilt_examples
-        verification                  examples/verification/verification.cpp
-        benchmark_timing              examples/verification/benchmark_timing.cpp
-        transport_sphere_diffusion    examples/transport/sphere_diffusion.cpp
-        transport_cylinder_diffusion  examples/transport/cylinder_diffusion.cpp
-        transport_advection_plume_2d  examples/transport/advection_plume_2d.cpp
-        groundwater_theis_well        examples/groundwater/theis_well.cpp
-        groundwater_well_dipole       examples/groundwater/well_dipole.cpp
-    )
-    list(LENGTH _nilt_examples _len)
-    math(EXPR _last "${_len} - 1")
-    foreach(_i RANGE 0 ${_last} 2)
-        math(EXPR _j "${_i} + 1")
-        list(GET _nilt_examples ${_i} _target)
-        list(GET _nilt_examples ${_j} _source)
-        add_executable(${_target} ${_source})
-        target_link_libraries(${_target} PRIVATE nilt)
-        if(NOT MSVC)
-            target_compile_options(${_target} PRIVATE -Wall -Wextra -Wpedantic)
-        endif()
+    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/examples")
 
-        # Place each binary next to its sources in a build/ subdirectory
-        get_filename_component(_source_dir ${_source} DIRECTORY)
-        set(_build_dir "${PROJECT_SOURCE_DIR}/${_source_dir}/build")
-        set_target_properties(${_target} PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY "${_build_dir}"
-        )
-        file(MAKE_DIRECTORY "${_build_dir}")
-    endforeach()
+    add_executable(transport_sphere_diffusion    examples/transport/sphere_diffusion.cpp)
+    add_executable(transport_cylinder_diffusion  examples/transport/cylinder_diffusion.cpp)
+    add_executable(transport_advection_plume_2d  examples/transport/advection_plume_2d.cpp)
+    add_executable(groundwater_theis_well        examples/groundwater/theis_well.cpp)
+    add_executable(groundwater_well_dipole       examples/groundwater/well_dipole.cpp)
 
-    # verification needs the test headers in its own directory
-    target_include_directories(verification PRIVATE
-        "${PROJECT_SOURCE_DIR}/examples/verification"
-    )
+    target_link_libraries(transport_sphere_diffusion    PRIVATE nilt nilt_warnings)
+    target_link_libraries(transport_cylinder_diffusion  PRIVATE nilt nilt_warnings)
+    target_link_libraries(transport_advection_plume_2d  PRIVATE nilt nilt_warnings)
+    target_link_libraries(groundwater_theis_well        PRIVATE nilt nilt_warnings)
+    target_link_libraries(groundwater_well_dipole       PRIVATE nilt nilt_warnings)
 endif()
 
 # install rules
