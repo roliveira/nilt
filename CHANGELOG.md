@@ -2,6 +2,30 @@
 
 <!-- version list -->
 
+## v1.5.0 (2026-05-27)
+
+### Build System
+
+- Cmake simplification refactoring ([#20](https://github.com/roliveira/nilt/pull/20),
+  [`e9977ca`](https://github.com/roliveira/nilt/commit/e9977ca00231a6f29aed356520d2edb4cb8ac6b5))
+
+### Chores
+
+- **deps**: Bump pillow from 11.3.0 to 12.2.0
+  ([`c2555b7`](https://github.com/roliveira/nilt/commit/c2555b794039241bf47647f503e6589a390e7284))
+
+### Continuous Integration
+
+- **gha**: Split wfs and added more OS/arch ([#18](https://github.com/roliveira/nilt/pull/18),
+  [`1d75034`](https://github.com/roliveira/nilt/commit/1d75034a36e4e0ad5f5595f680de533b86e3a9ee))
+
+### Features
+
+- Simplified cmake and moved verification out of examples
+  ([#20](https://github.com/roliveira/nilt/pull/20),
+  [`e9977ca`](https://github.com/roliveira/nilt/commit/e9977ca00231a6f29aed356520d2edb4cb8ac6b5))
+
+
 ## v1.4.1 (2026-04-23)
 
 ### Bug Fixes
