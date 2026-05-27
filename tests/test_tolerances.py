@@ -1,4 +1,4 @@
-"""Shared test configuration and tolerance constants.
+"""Shared test tolerance constants.
 
 These tolerances reflect the expected numerical accuracy of each inversion
 algorithm, not floating-point machine precision. The three methods are
@@ -38,7 +38,7 @@ TALBOT_ABS_TOL = 1e-7
 
 # Stehfest method (real-valued, lowest accuracy) - accuracy depends
 # heavily on the smoothness of the time-domain function. Polynomial/ramp
-# functions invert well (~6 digits); exponential degrade quickly with t,
+# functions invert well (~6 digits); exponentials degrade quickly with t,
 # dropping to ~1-2 digits for large t or oscillatory signals.
 STEHFEST_EXP_SMALL_REL_TOL = 1e-4
 STEHFEST_EXP_MEDIUM_REL_TOL = 1e-2

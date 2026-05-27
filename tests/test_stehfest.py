@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import nilt
-from conftest import (
+from tests.test_tolerances import (
     ARRAY_CONSISTENCY_TOL,
     STEHFEST_CUBIC_REL_TOL,
     STEHFEST_EXP_LARGE_REL_TOL,
@@ -105,4 +105,4 @@ class TestStehfestArrayInput:
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
             scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == pytest.approx(scalar_result, rel=1e-10)
+            assert array_result[i] == pytest.approx(scalar_result, rel=ARRAY_CONSISTENCY_TOL)
