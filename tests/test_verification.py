@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 import nilt
-from tests.test_tolerances import (
+from test_tolerances import (
     TOL_DEHOOG_ABS,
     TOL_DEHOOG_REL,
     TOL_STEHFEST_ABS,

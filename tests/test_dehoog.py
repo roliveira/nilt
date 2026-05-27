@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import nilt
-from tests.test_tolerances import (
+from test_tolerances import (
     ARRAY_CONSISTENCY_TOL,
     DEHOOG_ABS_TOL,
     DEHOOG_REL_TOL,

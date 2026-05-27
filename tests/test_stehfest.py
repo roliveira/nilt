@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 
 import nilt
-from tests.test_tolerances import (
+from test_tolerances import (
     ARRAY_CONSISTENCY_TOL,
     STEHFEST_CUBIC_REL_TOL,
     STEHFEST_EXP_LARGE_REL_TOL,
