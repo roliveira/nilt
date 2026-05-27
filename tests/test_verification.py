@@ -10,6 +10,14 @@ import numpy as np
 import pytest
 
 import nilt
+from test_tolerances import (
+    TOL_DEHOOG_ABS,
+    TOL_DEHOOG_REL,
+    TOL_STEHFEST_ABS,
+    TOL_STEHFEST_REL,
+    TOL_TALBOT_ABS,
+    TOL_TALBOT_REL,
+)
 
 pi = math.pi
 EULER_GAMMA = 0.5772156649015329  # Euler-Mascheroni constant
@@ -104,11 +112,11 @@ class TestVerificationStehfest:
         result = nilt.invert(algo, Fs, float(t))
         # Stehfest degrades for some functions at large t
         if abs(expected) > 1e-10:
-            assert abs(result - expected) / abs(expected) < 0.5, (
+            assert abs(result - expected) / abs(expected) < TOL_STEHFEST_REL, (
                 f"{name} t={t}: got {result}, expected {expected}"
             )
         else:
-            assert abs(result - expected) < 1e-3
+            assert abs(result - expected) < TOL_STEHFEST_ABS
 
 
 # Talbot (all 10 functions, complex F(s))
@@ -125,11 +133,11 @@ class TestVerificationTalbot:
         expected = SNAPSHOTS[(name, t)]
         result = nilt.invert(algo, Fs, float(t))
         if abs(expected) > 1e-10:
-            assert abs(result - expected) / abs(expected) < 1e-5, (
+            assert abs(result - expected) / abs(expected) < TOL_TALBOT_REL, (
                 f"{name} t={t}: got {result}, expected {expected}"
             )
         else:
-            assert abs(result - expected) < 1e-7
+            assert abs(result - expected) < TOL_TALBOT_ABS
 
 
 # DeHoog (all 10 functions, complex F(s))
@@ -146,11 +154,11 @@ class TestVerificationDeHoog:
         expected = SNAPSHOTS[(name, t)]
         result = nilt.invert(algo, Fs, float(t))
         if abs(expected) > 1e-10:
-            assert abs(result - expected) / abs(expected) < 1e-8, (
+            assert abs(result - expected) / abs(expected) < TOL_DEHOOG_REL, (
                 f"{name} t={t}: got {result}, expected {expected}"
             )
         else:
-            assert abs(result - expected) < 1e-10
+            assert abs(result - expected) < TOL_DEHOOG_ABS
 
 
 # Cross-method consistency
@@ -193,6 +201,6 @@ class TestVerificationArraySnapshot:
             expected = SNAPSHOTS[(name, t)]
             if abs(expected) > 1e-10:
                 rel_err = abs(results[i] - expected) / abs(expected)
-                assert rel_err < 1e-8, (
+                assert rel_err < TOL_DEHOOG_REL, (
                     f"{name} t={t}: rel_err={rel_err}"
                 )

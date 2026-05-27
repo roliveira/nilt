@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "nilt.hpp"
+#include "test_tolerances.hpp"
 
 #include <complex>
 
@@ -24,37 +25,37 @@ static C Fs_cos(C s) { return s / (s * s + 1.0); }
 // F(s) = 1/((s+1)^2+1)  =>  f(t) = exp(-t)*sin(t)
 static C Fs_damped_sin(C s) { return 1.0 / ((s + 1.0) * (s + 1.0) + 1.0); }
 
-TEST_CASE("DeHoog inverts 1/(s+1) to exp(-t) within 1e-12",
+TEST_CASE("DeHoog inverts 1/(s+1) to exp(-t)",
           "[dehoog][exp_decay]")
 {
     nilt::DeHoog algo;
 
     SECTION("t = 1.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 1.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-1.0), 1e-12));
+        REQUIRE_THAT(result, WithinRel(std::exp(-1.0), DEHOOG_REL_TOL));
     }
     SECTION("t = 5.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 5.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-5.0), 1e-12));
+        REQUIRE_THAT(result, WithinRel(std::exp(-5.0), DEHOOG_REL_TOL));
     }
     SECTION("t = 10.0") {
         double result = nilt::invert(algo, Fs_exp_decay, 10.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-10.0), 1e-9));
+        REQUIRE_THAT(result, WithinRel(std::exp(-10.0), DEHOOG_REL_TOL_LARGE));
     }
 }
 
-TEST_CASE("DeHoog inverts 1/s^2 to t within 1e-12",
+TEST_CASE("DeHoog inverts 1/s^2 to t",
           "[dehoog][ramp]")
 {
     nilt::DeHoog algo;
 
     for (double t : {1.0, 3.0, 7.0, 10.0}) {
         CAPTURE(t);
-        REQUIRE_THAT(nilt::invert(algo, Fs_ramp, t), WithinRel(t, 1e-12));
+        REQUIRE_THAT(nilt::invert(algo, Fs_ramp, t), WithinRel(t, DEHOOG_REL_TOL));
     }
 }
 
-TEST_CASE("DeHoog inverts 1/(s^2+1) to sin(t) within 1e-12",
+TEST_CASE("DeHoog inverts 1/(s^2+1) to sin(t)",
           "[dehoog][sin]")
 {
     nilt::DeHoog algo;
@@ -62,11 +63,11 @@ TEST_CASE("DeHoog inverts 1/(s^2+1) to sin(t) within 1e-12",
     for (double t : {1.0, 2.0, 5.0, 9.0}) {
         CAPTURE(t);
         REQUIRE_THAT(nilt::invert(algo, Fs_sin, t),
-                     WithinAbs(std::sin(t), 1e-12));
+                     WithinAbs(std::sin(t), DEHOOG_ABS_TOL));
     }
 }
 
-TEST_CASE("DeHoog inverts s/(s^2+1) to cos(t) within 1e-12",
+TEST_CASE("DeHoog inverts s/(s^2+1) to cos(t)",
           "[dehoog][cos]")
 {
     nilt::DeHoog algo;
@@ -74,11 +75,11 @@ TEST_CASE("DeHoog inverts s/(s^2+1) to cos(t) within 1e-12",
     for (double t : {1.0, 3.0, 6.0}) {
         CAPTURE(t);
         REQUIRE_THAT(nilt::invert(algo, Fs_cos, t),
-                     WithinAbs(std::cos(t), 1e-12));
+                     WithinAbs(std::cos(t), DEHOOG_ABS_TOL));
     }
 }
 
-TEST_CASE("DeHoog inverts 1/((s+1)^2+1) to exp(-t)sin(t) within 1e-12",
+TEST_CASE("DeHoog inverts 1/((s+1)^2+1) to exp(-t)sin(t)",
           "[dehoog][damped_sin]")
 {
     nilt::DeHoog algo;
@@ -87,7 +88,7 @@ TEST_CASE("DeHoog inverts 1/((s+1)^2+1) to exp(-t)sin(t) within 1e-12",
         CAPTURE(t);
         double expected = std::exp(-t) * std::sin(t);
         REQUIRE_THAT(nilt::invert(algo, Fs_damped_sin, t),
-                     WithinAbs(expected, 1e-12));
+                     WithinAbs(expected, DEHOOG_ABS_TOL));
     }
 }
 
@@ -112,13 +113,13 @@ TEST_CASE("DeHoog throws domain_error for t <= 0", "[dehoog][domain]")
     REQUIRE_THROWS_AS(nilt::invert(algo, Fs_exp_decay, -1.0), std::domain_error);
 }
 
-TEST_CASE("DeHoog with M=60 inverts exp_decay within 1e-11",
+TEST_CASE("DeHoog with M=60 inverts exp_decay",
           "[dehoog][parameters]")
 {
     nilt::DeHoog algo;
     algo.M = 60;
     double result = nilt::invert(algo, Fs_exp_decay, 2.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-2.0), 1e-11));
+    REQUIRE_THAT(result, WithinRel(std::exp(-2.0), DEHOOG_REL_TOL));
 }
 
 TEST_CASE("DeHoog accepts complex-returning lambda", "[dehoog][callable]")
@@ -126,7 +127,7 @@ TEST_CASE("DeHoog accepts complex-returning lambda", "[dehoog][callable]")
     nilt::DeHoog algo;
     auto Fs = [](C s) -> C { return 1.0 / (s + 1.0); };
     double result = nilt::invert(algo, Fs, 1.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), 1e-12));
+    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), DEHOOG_REL_TOL));
 }
 
 TEST_CASE("DeHoog direct call matches free function",

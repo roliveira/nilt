@@ -2,6 +2,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "nilt.hpp"
+#include "test_tolerances.hpp"
 
 #include <cmath>
 #include <complex>
@@ -25,19 +26,14 @@ TEST_CASE("All three methods agree on 1/(s+1) -> exp(-t) at t=2",
     double t_val = nilt::invert(talbot, [](C s) -> C { return 1.0 / (s + 1.0); }, 2.0);
     double d_val = nilt::invert(dehoog, [](C s) -> C { return 1.0 / (s + 1.0); }, 2.0);
 
-    // Stehfest is less precise (1e-4), Talbot and DeHoog much better
-    REQUIRE_THAT(s_val, WithinRel(expected, 1e-4));
-    REQUIRE_THAT(t_val, WithinRel(expected, 1e-10));
-    REQUIRE_THAT(d_val, WithinRel(expected, 1e-12));
+    // Stehfest is less precise, Talbot and DeHoog much better
+    REQUIRE_THAT(s_val, WithinRel(expected, TOL_STEHFEST));
+    REQUIRE_THAT(t_val, WithinRel(expected, TOL_TALBOT));
+    REQUIRE_THAT(d_val, WithinRel(expected, TOL_DEHOOG));
 }
 
 // Verification suite: 10 standard test functions at t=1..10
 // Tests exact numerical values against analytical solutions.
-
-// Tolerances per method (relative error bounds observed in benchmarks)
-static constexpr double TOL_STEHFEST = 0.1;
-static constexpr double TOL_TALBOT   = 1e-6;
-static constexpr double TOL_DEHOOG   = 1e-9;
 
 // func1: f(t) = 1/sqrt(pi*t),  F(s) = 1/sqrt(s)
 
@@ -216,5 +212,5 @@ TEST_CASE("nilt::invert deduces Stehfest from function pointer",
     nilt::Stehfest algo;
     auto fp = +[](double s) -> double { return 1.0 / (s + 1.0); };
     double result = nilt::invert(algo, fp, 1.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), 1e-4));
+    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), TOL_STEHFEST));
 }
