@@ -118,9 +118,21 @@ below shows a test function from Stehfest (1970) ($f(t) = 1/\sqrt{\pi t}$) as an
 
 ### C++ library
 
+The library is built and installed from `CMakeLists.txt` using CMake (+3.19). If you're just installing the library, make sure to turn off the examples using `-DNILT_BUILD_EXAMPLES=OFF`.
+
+Install the headers and CMake config files to a chosen prefix:
+
 ```bash
-cmake -B build
+cmake -B build -DNILT_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=/path/to/install
 cmake --build build
+cmake --install build
+```
+
+Then consume from another CMake project:
+
+```cmake
+find_package(nilt REQUIRED)
+target_link_libraries(my_target PRIVATE nilt::nilt)
 ```
 
 ### C++ tests (Catch2, fetched automatically)
