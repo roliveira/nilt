@@ -6,6 +6,7 @@ A C++ header-only library (with Python bindings) for numerically inverting Lapla
 
 [^1]: This work was partly developed in [Oliveira, R. (2021)](https://doi.org/10.25560/92253).
 
+
 ## Statement of need
 
 Many problems in physics and engineering are easier to solve in the Laplace domain than in the time domain. Groundwater drawdown, heat conduction in semi-infinite solids, diffusion from spheres and cylinders, viscoelastic creep are great examples that have closed-form Laplace-domain solutions that are difficult or impossible to invert analytically.
@@ -18,6 +19,7 @@ Existing tools are scattered:
 - No other C++ library packages multiple algorithms behind a common interface.
 
 NILT provides Stehfest, Talbot, and De Hoog in a dependency-free C++ header that compiles with any C++14 toolchain. The Python bindings expose the same compiled code for scripting and prototyping. 
+
 
 ## Quick Start
 
@@ -62,6 +64,7 @@ t = np.linspace(0.1, 10, 100)
 results = invert(DeHoog(), lambda s: 1.0 / (s + 1.0), t)
 ```
 
+
 ## Methods
 
 Three algorithms are implemented:
@@ -79,6 +82,7 @@ All algorithms accept any callable via the free function or direct call:
 | Free function | `nilt::invert(algo, F, t)` | `nilt.invert(algo, F, t)` |
 | Direct call   | `algo(F, t)`               | `algo(F, t)`              |
 
+
 ### Parameters
 
 Each algorithm exposes tunable parameters (identical names in C++ and Python):
@@ -91,6 +95,7 @@ Each algorithm exposes tunable parameters (identical names in C++ and Python):
 | DeHoog   | `M` | 40 | Order of approximation |
 | DeHoog   | `T_factor` | 4.0 | Period factor ($T = T_{\text{factor}} \cdot t$) |
 | DeHoog   | `tol` | 1e-16 | Tolerance for integration limit |
+
 
 ## Test Functions
 
@@ -109,6 +114,7 @@ The [verification suite](examples/verification/) evaluates all methods against k
 | 9 | $\cos t$ | $s/(s^2+1)$ | Abate & Whitt |
 | 10 | $e^{-t}\sin t$ | $1/((s+1)^2+1)$ | Abate & Whitt |
 
+
 ## Benchmark Results
 
 See the [verification example](examples/verification/) for full the results. The table
@@ -126,6 +132,7 @@ below shows a test function from Stehfest (1970) ($f(t) = 1/\sqrt{\pi t}$) as an
 | 8 | 1.9947e-01 | 1.9947e-01 | 4.92e-06 | 1.9947e-01 | 4.82e-12 | 1.9947e-01 | 2.70e-14 |
 | 9 | 1.8806e-01 | 1.8806e-01 | 6.24e-06 | 1.8806e-01 | 4.61e-12 | 1.8806e-01 | 3.26e-14 |
 | 10 | 1.7841e-01 | 1.7841e-01 | 5.70e-06 | 1.7841e-01 | 4.84e-12 | 1.7841e-01 | 6.02e-14 |
+
 
 ## Building
 
@@ -156,6 +163,7 @@ cmake --build build
 ctest --test-dir build --output-on-failure
 ```
 
+
 ### Python bindings (pybind11)
 
 The Python package is built and installed automatically from `pyproject.toml`
@@ -180,11 +188,13 @@ Once installed, `from nilt import ...` works as expected. The `invert` function
 accepts both scalar `float` and NumPy array arguments. 
 Using NumPy arrays is slightly more efficient than having to evaluate several individual floats at a time. 
 
+
 ### Python tests (pytest)
 
 ```bash
 uv run pytest                  # or simply pytest (with venv activated)
 ```
+
 
 ## Running the Verification Suite
 
@@ -197,6 +207,7 @@ python ../plot_verification.py # reads from build/, writes PNGs there
 # Python (from repo root, with .venv activated)
 python examples/verification/verification.py   # writes py_*.csv to build/
 ```
+
 
 ## Examples
 
@@ -216,6 +227,11 @@ Each subdirectory contains a `README.md` with the mathematical formulation and
 a `plot_<example>.py` script to visualize the results. Every C++ example has a matching
 Python script (`.py`) that produces identical results. Binaries are placed in a `build/`
 subdirectory next to their sources; the output CSVs and PNGs are also there.
+
+
+## Contributing
+
+Contributions for bugs, features, other methods and examples are all welcome! See [CONTRIBUTING.md](CONTRIBUTING.md) for the development setup, commit conventions, pull request guidelines and etc.
 
 
 ## References
