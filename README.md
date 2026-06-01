@@ -35,7 +35,7 @@ double f = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 
 nilt::DeHoog dh;
 double f = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
 
-// Custom parameters
+// Custom parameters (see Parameters section for full list)
 nilt::Stehfest algo;
 algo.N = 12;
 double f = nilt::invert(algo, my_func, 1.0);
@@ -54,7 +54,7 @@ f = invert(Talbot(), lambda s: 1.0 / (s + 1.0), 1.0)
 dh = DeHoog()
 f = dh(lambda s: 1.0 / (s + 1.0), 2.5)
 
-# Custom parameters
+# Custom parameters (see Parameters section for full list)
 algo = Stehfest()
 algo.N = 12
 f = invert(algo, my_func, 1.0)
