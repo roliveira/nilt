@@ -54,13 +54,13 @@ with open(out, "w") as f:
         f.write(f"Stehfest,{N},{us:.6f}\n")
         print(f"Stehfest  N={N:3d}  {us:.1f} us")
 
-    # Talbot: vary n
-    for n in [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]:
+    # Talbot: vary N
+    for N in [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]:
         algo = nilt.Talbot()
-        algo.n = n
+        algo.N = N
         us = time_inversion(algo, Fs_cplx)
-        f.write(f"Talbot,{n},{us:.6f}\n")
-        print(f"Talbot    n={n:3d}  {us:.1f} us")
+        f.write(f"Talbot,{N},{us:.6f}\n")
+        print(f"Talbot    N={N:3d}  {us:.1f} us")
 
     # DeHoog: vary M
     for M in [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]:

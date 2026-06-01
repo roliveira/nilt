@@ -90,11 +90,11 @@ Each algorithm exposes tunable parameters (identical names in C++ and Python):
 | Class | Parameter | Default | Description |
 |-------|-----------|---------|-------------|
 | Stehfest | `N` | 18 | Number of terms (must be even) |
-| Talbot   | `n` | 50 | Number of quadrature points |
-| Talbot   | `shift` | 0.0 | Contour shift parameter |
+| Talbot   | `N` | 50 | Number of quadrature points |
+| Talbot   | `SHIFT` | 0.0 | Contour shift parameter |
 | DeHoog   | `M` | 40 | Order of approximation |
-| DeHoog   | `T_factor` | 4.0 | Period factor ($T = T_{\text{factor}} \cdot t$) |
-| DeHoog   | `tol` | 1e-16 | Tolerance for integration limit |
+| DeHoog   | `T_FACTOR` | 4.0 | Period factor ($T = T_{\text{FACTOR}} \cdot t$) |
+| DeHoog   | `TOL` | 1e-16 | Tolerance for integration limit |
 
 
 ## Test Functions

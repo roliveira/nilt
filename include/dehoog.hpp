@@ -18,8 +18,8 @@ public:
     static constexpr const char* name = "DeHoog";
 
     int    M        = 40;       // order of approximation (number of terms)
-    double T_factor = 4.0;      // period factor (T = T_factor * t)
-    double tol      = 1.0e-16;  // tolerance for integration limit
+    double T_FACTOR = 4.0;      // period factor (T = T_FACTOR * t)
+    double TOL      = 1.0e-16;  // tolerance for integration limit
 
     // Evaluate the inverse Laplace transform at time t.
     // Fs must be callable as Fs(std::complex<double>) -> std::complex<double>.
@@ -31,8 +31,8 @@ public:
 
         int twoM = 2 * M;
 
-        double T     = T_factor * t;
-        double gamma = -0.5 * std::log(tol) / T;
+        double T     = T_FACTOR * t;
+        double gamma = -0.5 * std::log(TOL) / T;
 
         // Evaluate F(s) at quadrature points
         std::vector<std::complex<double>> Fc(twoM + 1);

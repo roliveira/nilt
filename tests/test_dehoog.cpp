@@ -92,13 +92,13 @@ TEST_CASE("DeHoog inverts 1/((s+1)^2+1) to exp(-t)sin(t)",
     }
 }
 
-TEST_CASE("DeHoog default parameters M=40 T_factor=4.0 tol=1e-16",
+TEST_CASE("DeHoog default parameters M=40 T_FACTOR=4.0 TOL=1e-16",
           "[dehoog][defaults]")
 {
     nilt::DeHoog algo;
     REQUIRE(algo.M == 40);
-    REQUIRE(algo.T_factor == 4.0);
-    REQUIRE(algo.tol == 1e-16);
+    REQUIRE(algo.T_FACTOR == 4.0);
+    REQUIRE(algo.TOL == 1e-16);
 }
 
 TEST_CASE("DeHoog name is DeHoog", "[dehoog][name]")

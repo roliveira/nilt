@@ -69,21 +69,21 @@ class TestTalbotInvertPolynomial:
 
 class TestTalbotDefaults:
 
-    def test_default_n_is_50(self):
-        assert nilt.Talbot().n == 50
+    def test_default_N_is_50(self):
+        assert nilt.Talbot().N == 50
 
-    def test_default_shift_is_zero(self):
-        assert nilt.Talbot().shift == 0.0
+    def test_default_SHIFT_is_zero(self):
+        assert nilt.Talbot().SHIFT == 0.0
 
-    def test_n_is_mutable(self):
+    def test_N_is_mutable(self):
         algo = nilt.Talbot()
-        algo.n = 100
-        assert algo.n == 100
+        algo.N = 100
+        assert algo.N == 100
 
-    def test_shift_is_mutable(self):
+    def test_SHIFT_is_mutable(self):
         algo = nilt.Talbot()
-        algo.shift = 1.5
-        assert algo.shift == 1.5
+        algo.SHIFT = 1.5
+        assert algo.SHIFT == 1.5
 
 
 class TestTalbotDomainError:

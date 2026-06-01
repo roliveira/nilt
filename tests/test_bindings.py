@@ -75,21 +75,21 @@ class TestStehfestBindingExposesMutableN:
 
 class TestTalbotBindingExposesMutableParameters:
 
-    def test_read_default_n(self):
-        assert nilt.Talbot().n == 50
+    def test_read_default_N(self):
+        assert nilt.Talbot().N == 50
 
-    def test_read_default_shift(self):
-        assert nilt.Talbot().shift == 0.0
+    def test_read_default_SHIFT(self):
+        assert nilt.Talbot().SHIFT == 0.0
 
-    def test_write_n_persists(self):
+    def test_write_N_persists(self):
         algo = nilt.Talbot()
-        algo.n = 100
-        assert algo.n == 100
+        algo.N = 100
+        assert algo.N == 100
 
-    def test_write_shift_persists(self):
+    def test_write_SHIFT_persists(self):
         algo = nilt.Talbot()
-        algo.shift = 2.0
-        assert algo.shift == 2.0
+        algo.SHIFT = 2.0
+        assert algo.SHIFT == 2.0
 
 
 class TestDeHoogBindingExposesMutableParameters:
@@ -97,26 +97,26 @@ class TestDeHoogBindingExposesMutableParameters:
     def test_read_default_M(self):
         assert nilt.DeHoog().M == 40
 
-    def test_read_default_T_factor(self):
-        assert nilt.DeHoog().T_factor == 4.0
+    def test_read_default_T_FACTOR(self):
+        assert nilt.DeHoog().T_FACTOR == 4.0
 
-    def test_read_default_tol(self):
-        assert nilt.DeHoog().tol == 1e-16
+    def test_read_default_TOL(self):
+        assert nilt.DeHoog().TOL == 1e-16
 
     def test_write_M_persists(self):
         algo = nilt.DeHoog()
         algo.M = 20
         assert algo.M == 20
 
-    def test_write_T_factor_persists(self):
+    def test_write_T_FACTOR_persists(self):
         algo = nilt.DeHoog()
-        algo.T_factor = 8.0
-        assert algo.T_factor == 8.0
+        algo.T_FACTOR = 8.0
+        assert algo.T_FACTOR == 8.0
 
-    def test_write_tol_persists(self):
+    def test_write_TOL_persists(self):
         algo = nilt.DeHoog()
-        algo.tol = 1e-10
-        assert algo.tol == 1e-10
+        algo.TOL = 1e-10
+        assert algo.TOL == 1e-10
 
 
 class TestAllThreeAlgorithmsCallable:

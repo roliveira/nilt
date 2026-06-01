@@ -72,26 +72,26 @@ class TestDeHoogDefaults:
     def test_default_M_is_40(self):
         assert nilt.DeHoog().M == 40
 
-    def test_default_T_factor_is_4(self):
-        assert nilt.DeHoog().T_factor == 4.0
+    def test_default_T_FACTOR_is_4(self):
+        assert nilt.DeHoog().T_FACTOR == 4.0
 
-    def test_default_tol_is_1e16(self):
-        assert nilt.DeHoog().tol == 1e-16
+    def test_default_TOL_is_1e16(self):
+        assert nilt.DeHoog().TOL == 1e-16
 
     def test_M_is_mutable(self):
         algo = nilt.DeHoog()
         algo.M = 60
         assert algo.M == 60
 
-    def test_T_factor_is_mutable(self):
+    def test_T_FACTOR_is_mutable(self):
         algo = nilt.DeHoog()
-        algo.T_factor = 2.0
-        assert algo.T_factor == 2.0
+        algo.T_FACTOR = 2.0
+        assert algo.T_FACTOR == 2.0
 
-    def test_tol_is_mutable(self):
+    def test_TOL_is_mutable(self):
         algo = nilt.DeHoog()
-        algo.tol = 1e-12
-        assert algo.tol == 1e-12
+        algo.TOL = 1e-12
+        assert algo.TOL == 1e-12
 
 
 class TestDeHoogDomainError:

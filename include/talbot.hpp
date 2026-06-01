@@ -18,8 +18,8 @@ class Talbot
 public:
     static constexpr const char* name = "Talbot";
 
-    int    n     = 50;     // number of quadrature points
-    double shift = 0.0;    // contour shift parameter
+    int    N     = 50;     // number of quadrature points
+    double SHIFT = 0.0;    // contour shift parameter
 
     // Evaluate the inverse Laplace transform at time t.
     // Fs must be callable as Fs(std::complex<double>) -> std::complex<double>.
@@ -29,19 +29,19 @@ public:
         if (t <= 0.0)
             throw std::domain_error("Talbot: t must be positive");
 
-        double h = 2.0 * pi / n;
+        double h = 2.0 * pi / N;
         std::complex<double> ans(0.0, 0.0);
 
-        for (int k = 0; k < n; ++k)
+        for (int k = 0; k < N; ++k)
         {
             double theta = -pi + (k + 0.5) * h;
             double ct = std::cos(0.6407 * theta);
             double st = std::sin(0.6407 * theta);
 
-            std::complex<double> z = shift + static_cast<double>(n) / t
+            std::complex<double> z = SHIFT + static_cast<double>(N) / t
                 * (0.5017 * theta * ct / st + std::complex<double>(-0.6122, 0.2645 * theta));
 
-            std::complex<double> dz = static_cast<double>(n) / t
+            std::complex<double> dz = static_cast<double>(N) / t
                 * (-0.5017 * 0.6407 * theta / (st * st) + 0.5017 * ct / st
                    + std::complex<double>(0.0, 0.2645));
 
