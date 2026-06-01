@@ -2,9 +2,22 @@
 
 # NILT: Numerical Inverse Laplace Transform Methods
 
-A C++ header-only library (with Python bindings) for numerically inverting Laplace transforms. Three algorithms are provided: Gaver-Stehfest, fixed Talbot, and De Hoog et al. All share the same callable interface in both languages.
+A C++ header-only library (with Python bindings) for numerically inverting Laplace transforms[^1]. Three algorithms are provided: Gaver-Stehfest, fixed Talbot, and De Hoog et al. All share the same callable interface in both languages.
 
-This work was partly developed in [Oliveira, R. (2021)](https://doi.org/10.25560/92253).
+[^1]: This work was partly developed in [Oliveira, R. (2021)](https://doi.org/10.25560/92253).
+
+## Statement of need
+
+Many problems in physics and engineering are easier to solve in the Laplace domain than in the time domain. Groundwater drawdown, heat conduction in semi-infinite solids, diffusion from spheres and cylinders, viscoelastic creep are great examples that have closed-form Laplace-domain solutions that are difficult or impossible to invert analytically.
+
+Existing tools are scattered:
+
+- MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
+- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementation is far slower when you need to invert at thousands of points.
+- The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the application (transient spectroscopy). 
+- No other C++ library packages multiple algorithms behind a common interface.
+
+NILT provides Stehfest, Talbot, and De Hoog in a dependency-free C++ header that compiles with any C++14 toolchain. The Python bindings expose the same compiled code for scripting and prototyping. 
 
 ## Quick Start
 
