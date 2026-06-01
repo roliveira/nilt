@@ -32,13 +32,13 @@ All three algorithms share the same two-argument interface in both C++ and Pytho
 **Python**
 
 ```python
-algo(F, t)
+nilt.invert(algorithm, F, t)
 ```
 
 **C++**
 
 ```cpp
-nilt::invert(algo, F, t)
+nilt::invert(algorithm, F, t)
 ```
 
 The Stehfest algorithm requires that $F(s)$ be real-valued while Talbot and De Hoog operate on complex-valued transforms. Each algorithm exposes tunable parameters (number of terms, tolerance, contour shift) with defaults that work well for most problems.
@@ -52,8 +52,8 @@ Many problems in physics and engineering are easier to solve in the Laplace doma
 Existing tools are scattered:
 
 - MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
-- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementaiton is far slower when you need to invert at thousands of points.
-- The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the applicatoin (transient spectroscopy). 
+- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementation is far slower when you need to invert at thousands of points.
+- The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the application (transient spectroscopy). 
 - No other C++ library packages multiple algorithms behind a common interface.
 
 NILT provides Stehfest, Talbot, and De Hoog in a dependency-free C++ header that compiles with any C++14 toolchain. The Python bindings expose the same compiled code for scripting and prototyping. 
