@@ -92,11 +92,11 @@ TEST_CASE("Talbot inverts 1/((s+1)^2+1) to exp(-t)sin(t)",
     }
 }
 
-TEST_CASE("Talbot default parameters n=50 shift=0", "[talbot][defaults]")
+TEST_CASE("Talbot default parameters N=50 SHIFT=0", "[talbot][defaults]")
 {
     nilt::Talbot algo;
-    REQUIRE(algo.n == 50);
-    REQUIRE(algo.shift == 0.0);
+    REQUIRE(algo.N == 50);
+    REQUIRE(algo.SHIFT == 0.0);
 }
 
 TEST_CASE("Talbot name is Talbot", "[talbot][name]")
@@ -111,11 +111,11 @@ TEST_CASE("Talbot throws domain_error for t <= 0", "[talbot][domain]")
     REQUIRE_THROWS_AS(nilt::invert(algo, Fs_exp_decay, -1.0), std::domain_error);
 }
 
-TEST_CASE("Talbot with n=100 inverts exp_decay",
+TEST_CASE("Talbot with N=100 inverts exp_decay",
           "[talbot][parameters]")
 {
     nilt::Talbot algo;
-    algo.n = 100;
+    algo.N = 100;
     double result = nilt::invert(algo, Fs_exp_decay, 2.0);
     REQUIRE_THAT(result, WithinRel(std::exp(-2.0), TALBOT_REL_TOL_LARGE));
 }

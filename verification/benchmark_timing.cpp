@@ -61,14 +61,14 @@ int main()
         std::cout << "Stehfest  N=" << N  << "  " << us << " us" << std::endl;
     }
 
-    // Talbot: vary n
-    for (int n : {5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200})
+    // Talbot: vary N
+    for (int N : {5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200})
     {
         nilt::Talbot algo;
-        algo.n = n;
+        algo.N = N;
         double us = time_inversion(algo, Fs_cplx);
-        ofs << "Talbot," << n << "," << us << std::endl;
-        std::cout << "Talbot    n=" << n  << "  " << us << " us" << std::endl;
+        ofs << "Talbot," << N << "," << us << std::endl;
+        std::cout << "Talbot    N=" << N  << "  " << us << " us" << std::endl;
     }
 
     // DeHoog: vary M

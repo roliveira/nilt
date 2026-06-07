@@ -136,9 +136,9 @@ PYBIND11_MODULE(_nilt, m)
         "Fixed Talbot algorithm for numerical inverse Laplace transform.\n"
         "F(s) must accept a complex and return a complex.")
         .def(py::init<>())
-        .def_readwrite("n", &nilt::Talbot::n,
+        .def_readwrite("N", &nilt::Talbot::N,
             "Number of quadrature points (default 50)")
-        .def_readwrite("shift", &nilt::Talbot::shift,
+        .def_readwrite("SHIFT", &nilt::Talbot::SHIFT,
             "Contour shift parameter (default 0.0)")
         .def("__call__", &invert_talbot,
             py::arg("Fs"), py::arg("t"),
@@ -153,9 +153,9 @@ PYBIND11_MODULE(_nilt, m)
         .def(py::init<>())
         .def_readwrite("M", &nilt::DeHoog::M,
             "Order of approximation (default 40)")
-        .def_readwrite("T_factor", &nilt::DeHoog::T_factor,
+        .def_readwrite("T_FACTOR", &nilt::DeHoog::T_FACTOR,
             "Period factor (default 4.0)")
-        .def_readwrite("tol", &nilt::DeHoog::tol,
+        .def_readwrite("TOL", &nilt::DeHoog::TOL,
             "Tolerance (default 1e-16)")
         .def("__call__", &invert_dehoog,
             py::arg("Fs"), py::arg("t"),
