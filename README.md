@@ -13,8 +13,8 @@ Many problems in physics and engineering are easier to solve in the Laplace doma
 
 Existing tools are scattered:
 
-- MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
-- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementation is far slower when you need to invert at thousands of points.
+- MATLAB's `ilaplace` implements an inverse Laplace transform but it has no access to individual methods or parameters within it, and does not offer an open-source license.
+- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) and is written in pure Python with arbitrary-precision arithmetic, so a Python-first implementation is far slower when you need to invert at thousands of points.
 - The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the application (transient spectroscopy). 
 - No other C++ library packages multiple algorithms behind a common interface.
 
