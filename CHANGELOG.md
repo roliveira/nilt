@@ -2,6 +2,44 @@
 
 <!-- version list -->
 
+## v2.0.0 (2026-06-07)
+
+### Chores
+
+- Update lockfiles ([#23](https://github.com/roliveira/nilt/pull/23),
+  [`90178d5`](https://github.com/roliveira/nilt/commit/90178d57679dad8e2f5cb228ff5cc408ff20c73b))
+
+### Documentation
+
+- Add build and install instructions for cmake ([#21](https://github.com/roliveira/nilt/pull/21),
+  [`a042b94`](https://github.com/roliveira/nilt/commit/a042b941f152e0a8cec418d38d453ff9853bcf4c))
+
+- Add explicit mention to parameters in quickstart
+  ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+- Added statement of need from paper.md ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+- Rewrite contributing guide and add reference in the readme
+  ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+- Typos in README.md ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+- **joss**: Fixed typos from paper.md ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+### Refactoring
+
+- Improving docs and parameter names ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+- Uppercase all algorithm parameter names ([#24](https://github.com/roliveira/nilt/pull/24),
+  [`098fb7d`](https://github.com/roliveira/nilt/commit/098fb7d7bc585167392264a23584e07acc4bb9f6))
+
+
 ## v1.5.0 (2026-05-27)
 
 ### Build System
