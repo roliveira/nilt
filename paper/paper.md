@@ -43,7 +43,7 @@ nilt::invert(algorithm, F, t)
 
 The Stehfest algorithm requires that $F(s)$ be real-valued while Talbot and De Hoog operate on complex-valued transforms. Each algorithm exposes tunable parameters (number of terms, tolerance, contour shift) with defaults that work well for most problems.
 
-The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evlauating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@@oliveira2020,oliveira2021,@oliveira2023].
+The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evlauating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@oliveira2020,oliveira2021,@oliveira2023].
 
 # Statement of need
 
@@ -80,10 +80,10 @@ The Python layer is built with pybind11 and packaged via scikit-build-core. `Ste
 
 The repository contains 10 verification functions drawn from Stehfest [@stehfest1970] and Abate and Whitt [@abate2006], plus five worked physics examples from groundwater and transport phenomena: 
 
-- Theis well drawdown
-- pumping-injection dipole
-- sphere and cylinder diffusion
-- 2-D advection-diffusion plume 
+- Theis well drawdown [@theis1935]
+- pumping-injection dipole [@bear1979]
+- sphere and cylinder diffusion [@crank1975]
+- 2-D advection-diffusion plume [@bear1979]
 
 Each example exists as both a C++ executable and a Python script that compare all three algorithms against the known analytical solution.
 
