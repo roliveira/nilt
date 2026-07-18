@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v2.0.1 (2026-07-18)
+
+### Bug Fixes
+
+- Added missing DOI to JOSS paper ([#25](https://github.com/roliveira/nilt/pull/25),
+  [`acece3e`](https://github.com/roliveira/nilt/commit/acece3e5c9d1fa4c68d79ad4ba5003bced587e69))
+
+- Added refs to JOSS paper ([#25](https://github.com/roliveira/nilt/pull/25),
+  [`acece3e`](https://github.com/roliveira/nilt/commit/acece3e5c9d1fa4c68d79ad4ba5003bced587e69))
+
+
 ## v2.0.0 (2026-06-07)
 
 ### Chores
