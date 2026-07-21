@@ -29,7 +29,7 @@ cmake --build build --parallel
 
 ## Running tests
 
-CI covers Ubuntu, macOS, and Windows (ARM included), Python 3.9-3.13. Everything must pass before merge.
+CI covers Ubuntu, macOS, and Windows (ARM included), Python 3.10-3.13. Everything must pass before merge.
 
 
 ### C++
