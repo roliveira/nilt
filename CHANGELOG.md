@@ -2,6 +2,24 @@
 
 <!-- version list -->
 
+## v3.0.0 (2026-07-21)
+
+### Bug Fixes
+
+- Corrected security report (dependecy) ([#27](https://github.com/roliveira/nilt/pull/27),
+  [`029dffe`](https://github.com/roliveira/nilt/commit/029dffe7fbf0418e5537397e204c5831e7575696))
+
+### Chores
+
+- **deps**: Bump pillow in the uv group across 1 directory
+  ([#26](https://github.com/roliveira/nilt/pull/26),
+  [`ab2a642`](https://github.com/roliveira/nilt/commit/ab2a642df5d04f7d0de70132fff85cbb3f8cab4a))
+
+### Breaking Changes
+
+- Removed support for py39
+
+
 ## v2.0.2 (2026-07-21)
 
 ### Bug Fixes
