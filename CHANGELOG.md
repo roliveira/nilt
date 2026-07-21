@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v2.0.2 (2026-07-21)
+
+### Bug Fixes
+
+- Removed url preffix in doi for theis
+  ([`b15e2a5`](https://github.com/roliveira/nilt/commit/b15e2a5c240b2ceec1334f51d7002f5570390e13))
+
+
 ## v2.0.1 (2026-07-18)
 
 ### Bug Fixes
