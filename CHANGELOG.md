@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.1.0 (2026-07-22)
+
+### Features
+
+- Pypi publish gha ([#28](https://github.com/roliveira/nilt/pull/28),
+  [`ae56f65`](https://github.com/roliveira/nilt/commit/ae56f6502f4934d5ec09cbf87e2e17b83b0f725a))
+
+
 ## v3.0.0 (2026-07-21)
 
 ### Bug Fixes
