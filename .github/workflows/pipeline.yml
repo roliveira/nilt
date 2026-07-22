@@ -1,4 +1,4 @@
-name: Release
+name: Test, release and publish
 
 permissions:
   contents: read
@@ -22,7 +22,7 @@ jobs:
       contents: read
 
   release:
-    name: 🚀 release
+    name: 🚀 Release
     needs: [cpp-tests, python-tests]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, '[skip ci]')
     runs-on: ubuntu-latest
@@ -33,6 +33,9 @@ jobs:
 
     permissions:
       contents: write
+
+    outputs:
+      released: ${{ steps.release.outputs.released }}
 
     steps:
       - name: 🛒 checkout
@@ -50,3 +53,35 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
+
+  publish:
+    name: 📤 Publish
+    needs: release
+    # Only execute if the tests passed AND python-semantic-release bumped a version
+    if: needs.release.outputs.released == 'true'
+    runs-on: ubuntu-latest
+    
+    permissions:
+      id-token: write  # Critical for OIDC Trusted Publishing
+      contents: read   # Safely view checkout context
+
+    environment:
+      name: pypi
+      url: https://pypi.org{{ github.event.repository.name }}
+
+    steps:
+    - name: 🛒 checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        fetch-depth: 0 # Fetches full history so UV can find your brand-new tags
+
+    - name: ⚙️ install uv
+      uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+      with:
+        enable-cache: true
+
+    - name: 🔨 build package distribution
+      run: uv build
+
+    - name: 📦 publish to PyPI
+      run: uv publish
