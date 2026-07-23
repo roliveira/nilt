@@ -2,6 +2,17 @@
 
 <!-- version list -->
 
+## v3.1.1 (2026-07-23)
+
+### Bug Fixes
+
+- Rename python project and description ([#31](https://github.com/roliveira/nilt/pull/31),
+  [`1669c8c`](https://github.com/roliveira/nilt/commit/1669c8c20a94efa0113892b6367c056d5dcd93ad))
+
+- Updated citation name ([#31](https://github.com/roliveira/nilt/pull/31),
+  [`1669c8c`](https://github.com/roliveira/nilt/commit/1669c8c20a94efa0113892b6367c056d5dcd93ad))
+
+
 ## v3.1.0 (2026-07-22)
 
 ### Features
