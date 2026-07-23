@@ -2,6 +2,14 @@
 
 <!-- version list -->
 
+## v3.1.2 (2026-07-23)
+
+### Bug Fixes
+
+- Added compiled wheels to pypi gha ([#32](https://github.com/roliveira/nilt/pull/32),
+  [`c3dcd61`](https://github.com/roliveira/nilt/commit/c3dcd619319d40e84c704098fb02cc028a1f98d3))
+
+
 ## v3.1.1 (2026-07-23)
 
 ### Bug Fixes
