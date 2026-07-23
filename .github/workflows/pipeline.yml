@@ -54,11 +54,62 @@ jobs:
           git_committer_name: "github-actions"
           git_committer_email: "actions@users.noreply.github.com"
 
+  build-wheels:
+    name: 🏗️ Build ${{ matrix.os }} wheels
+    needs: release
+    if: needs.release.outputs.released == 'true'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            cibw_arch: "x86_64"
+          - os: ubuntu-24.04-arm
+            cibw_arch: "aarch64"
+          - os: macos-latest # Apple Silicon (M1/M2/M3)
+            cibw_arch: "arm64"
+          - os: macos-15-intel
+            cibw_arch: "x86_64"
+          - os: windows-latest
+            cibw_arch: "AMD64"
+          - os: windows-11-arm
+            cibw_arch: "ARM64"
+
+    steps:
+      - name: 🛒 checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0 # Critically pulls the brand-new release tag
+
+      - name: ⚙️ install uv
+        uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
+        with:
+          enable-cache: true
+
+      # Only build the pure source distribution once (on the first runner)
+      - name: 📦 Build Source Distribution
+        if: matrix.os == 'ubuntu-latest'      
+        run: uv build --sdist --out-dir dist
+
+      - name: 🖥️ Compile Binary Wheels
+        uses: pypa/cibuildwheel@v2.22.0
+        env:
+          CIBW_BUILD: "cp310-* cp311-* cp312-* cp313-*"
+          CIBW_ARCHS: ${{ matrix.cibw_arch }}
+        with:
+          package-dir: .
+          output-dir: dist
+
+      - name: 💾 Stash Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: pypi-artifacts-${{ matrix.os }}
+          path: dist/*
+
   publish:
     name: 📤 Publish
-    needs: release
-    # Only execute if the tests passed AND python-semantic-release bumped a version
-    if: needs.release.outputs.released == 'true'
+    needs: build-wheels # Must wait for ALL cross-compiled platform wheels to finish
     runs-on: ubuntu-latest
     
     permissions:
@@ -67,21 +118,20 @@ jobs:
 
     environment:
       name: pypi
-      url: https://pypi.org{{ github.event.repository.name }}
+      url: https://pypi.org # Direct link to your new package namespace
 
     steps:
-    - name: 🛒 checkout
-      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+    - name: 📥 Fetch All Compiled Wheels & Sdist
+      uses: actions/download-artifact@v4
       with:
-        fetch-depth: 0 # Fetches full history so UV can find your brand-new tags
+        path: dist
+        pattern: pypi-artifacts-*
+        merge-multiple: true # Flattens all OS outputs into one smooth folder directory
 
     - name: ⚙️ install uv
       uses: astral-sh/setup-uv@08807647e7069bb48b6ef5acd8ec9567f424441b # v8.1.0
       with:
         enable-cache: true
 
-    - name: 🔨 build package distribution
-      run: uv build
-
     - name: 📦 publish to PyPI
-      run: uv publish
+      run: uv publish dist/* # Securely transmits every architecture wheel at once
