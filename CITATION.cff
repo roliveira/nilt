@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: Numerical Inverse Laplace Transform Methods
+title: "NILT: Numerical Inverse Laplace Transform Methods"
 message: >-
   A numerical inversion of Laplace transforms library
   implemented in C++ library with Python bindings
