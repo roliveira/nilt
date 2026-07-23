@@ -1,7 +1,7 @@
 [project]
-name = "nilt"
+name = "nilt-python"
 version = "3.1.0"
-description = "NILT - Numerical Inverse Laplace Transform (Stehfest, Talbot, and De Hoog algorithms)"
+description = "NILT: Numerical Inverse Laplace Transform Methods"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
