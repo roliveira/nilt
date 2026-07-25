@@ -41,7 +41,12 @@ if(NILT_BUILD_TESTS)
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
         GIT_TAG        v3.9.1
     )
-    FetchContent_MakeAvailable(Catch2)
+    FetchContent_Declare(
+        ApprovalTests
+        GIT_REPOSITORY https://github.com/approvals/ApprovalTests.cpp.git
+        GIT_TAG        v.10.13.0
+    )
+    FetchContent_MakeAvailable(Catch2 ApprovalTests)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
     include(Catch)
 
@@ -55,7 +60,20 @@ if(NILT_BUILD_TESTS)
     target_include_directories(nilt_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
     target_include_directories(nilt_tests SYSTEM PRIVATE ${catch2_SOURCE_DIR}/src)
 
+    add_executable(nilt_snapshot_tests
+        tests/test_snapshots_main.cpp
+        tests/test_snapshots.cpp
+    )
+    target_link_libraries(nilt_snapshot_tests PRIVATE
+        nilt nilt_warnings Catch2::Catch2WithMain ApprovalTests::ApprovalTests
+    )
+    target_include_directories(nilt_snapshot_tests PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests
+        ${CMAKE_CURRENT_SOURCE_DIR}/verification
+    )
+
     catch_discover_tests(nilt_tests)
+    catch_discover_tests(nilt_snapshot_tests)
 endif()
 
 # verification

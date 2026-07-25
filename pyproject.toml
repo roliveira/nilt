@@ -20,7 +20,7 @@ classifiers = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest", "scipy"]
+dev = ["pytest", "pytest-snapshot", "scipy"]
 plot = ["matplotlib", "scipy"]
 
 [build-system]
