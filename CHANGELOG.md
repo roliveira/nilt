@@ -2,6 +2,26 @@
 
 <!-- version list -->
 
+## v3.1.3 (2026-07-25)
+
+### Bug Fixes
+
+- 1d vectors for dehoog ([#33](https://github.com/roliveira/nilt/pull/33),
+  [`bc09c05`](https://github.com/roliveira/nilt/commit/bc09c052aaa999092c98a3b6cd560fadaea6b1ad))
+
+- Adjusted output paths and updated readme ([#33](https://github.com/roliveira/nilt/pull/33),
+  [`bc09c05`](https://github.com/roliveira/nilt/commit/bc09c052aaa999092c98a3b6cd560fadaea6b1ad))
+
+- Convert DeHoog's 2d to 1d array ([#33](https://github.com/roliveira/nilt/pull/33),
+  [`bc09c05`](https://github.com/roliveira/nilt/commit/bc09c052aaa999092c98a3b6cd560fadaea6b1ad))
+
+- Indentation in code ([#33](https://github.com/roliveira/nilt/pull/33),
+  [`bc09c05`](https://github.com/roliveira/nilt/commit/bc09c052aaa999092c98a3b6cd560fadaea6b1ad))
+
+- Made exampels optional ([#33](https://github.com/roliveira/nilt/pull/33),
+  [`bc09c05`](https://github.com/roliveira/nilt/commit/bc09c052aaa999092c98a3b6cd560fadaea6b1ad))
+
+
 ## v3.1.2 (2026-07-23)
 
 ### Bug Fixes

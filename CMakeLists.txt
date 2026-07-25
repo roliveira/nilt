@@ -5,7 +5,7 @@ if(CMAKE_SOURCE_DIR STREQUAL CMAKE_BINARY_DIR)
     message(FATAL_ERROR "In-source builds are not allowed.")
 endif()
 
-set(NILT_VERSION "3.1.2")
+set(NILT_VERSION "3.1.3")
 project(nilt VERSION ${NILT_VERSION} LANGUAGES CXX)
 
 # options
