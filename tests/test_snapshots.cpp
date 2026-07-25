@@ -33,12 +33,12 @@ std::string serialize(Algo& algo, FuncS Fs)
 {
     std::ostringstream oss;
     oss << "t,ftn\n";
-    oss << std::scientific << std::setprecision(16);
+    oss << std::scientific << std::setprecision(8);
     for (int ti = 1; ti <= 10; ++ti) {
         double t = static_cast<double>(ti);
         double ftn = nilt::invert(algo, Fs, t);
         oss << std::fixed << std::setprecision(1) << t << ","
-            << std::scientific << std::setprecision(16) << ftn << "\n";
+            << std::scientific << std::setprecision(8) << ftn << "\n";
     }
     return oss.str();
 }
