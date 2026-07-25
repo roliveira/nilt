@@ -58,7 +58,7 @@ def _serialize(method, Fs):
     lines = ["t,ftn"]
     for t in T_VALUES:
         ftn = nilt.invert(method, Fs, t)
-        lines.append(f"{t:.1f},{ftn:.8e}")
+        lines.append(f"{t:.1f},{ftn:.4e}")
     return "\n".join(lines) + "\n"
 
 
