@@ -9,12 +9,12 @@ set(NILT_VERSION "3.1.2")
 project(nilt VERSION ${NILT_VERSION} LANGUAGES CXX)
 
 # options
-option(NILT_BUILD_EXAMPLES      "Build the example executables"       ON)
+option(NILT_BUILD_EXAMPLES      "Build the example executables"       OFF)
 option(NILT_BUILD_TESTS         "Build and register CTest tests"      OFF)
 option(NILT_BUILD_VERIFICATION  "Build the verification executables"  OFF)
 
 # header-only library target
-add_library(nilt INTERFACE)
+add_library(nilt INTERFACE       )
 add_library(nilt::nilt ALIAS nilt)
 
 target_include_directories(nilt INTERFACE

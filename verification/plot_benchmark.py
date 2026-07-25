@@ -7,7 +7,7 @@ import sys
 import polars as pl
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "utils"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "examples" / "utils"))
 from plot_args import create_argument_parser
 
 TIMING_STYLES = {

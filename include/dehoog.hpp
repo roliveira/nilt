@@ -29,33 +29,34 @@ public:
         if (t <= 0.0)
             throw std::domain_error("DeHoog: t must be positive");
 
-        int twoM = 2 * M;
-
+        int    twoM  = 2 * M;    // number of quadrature points
+        int    cols  = M + 1;    // number of columns in QD table (M + 1)
         double T     = T_FACTOR * t;
         double gamma = -0.5 * std::log(TOL) / T;
 
         // Evaluate F(s) at quadrature points
         std::vector<std::complex<double>> Fc(twoM + 1);
         Fc[0] = 0.5 * Fs(std::complex<double>(gamma, 0.0));
+        
         for (int i = 1; i <= twoM; ++i)
             Fc[i] = Fs(std::complex<double>(gamma, i * pi / T));
-
+        
         // Quotient-difference (QD) algorithm - eq. (20) of De Hoog et al. 1982
-        std::vector<std::vector<std::complex<double>>> e(twoM + 1, std::vector<std::complex<double>>(M + 1, 0.0));
-        std::vector<std::vector<std::complex<double>>> q(twoM,     std::vector<std::complex<double>>(M + 1, 0.0));
-
+        std::vector<std::complex<double>> e( (twoM + 1) * cols, 0.0);
+        std::vector<std::complex<double>> q( (twoM + 1) * cols, 0.0);
+        
         for (int i = 0; i < twoM; ++i)
-            q[i][1] = Fc[i + 1] / Fc[i];
+            q[i * cols + 1] = Fc[i + 1] / Fc[i];
 
         for (int r = 1; r <= M; ++r)
         {
             for (int i = 2 * (M - r); i >= 0; --i)
-                e[i][r] = q[i + 1][r] - q[i][r] + e[i + 1][r - 1];
+                e[i * cols + r] = q[(i + 1) * cols + r] - q[i * cols + r] + e[(i + 1) * cols + (r - 1)];
 
             if (r < M)
             {
                 for (int i = 2 * (M - r) - 1; i >= 0; --i)
-                    q[i][r + 1] = q[i + 1][r] * e[i + 1][r] / e[i][r];
+                    q[i * cols + (r + 1)] = q[(i + 1) * cols + r] * e[(i + 1) * cols + r] / e[i * cols + r];
             }
         }
 
@@ -64,8 +65,8 @@ public:
         d[0] = Fc[0];
         for (int m = 1; m <= M; ++m)
         {
-            d[2 * m - 1] = -q[0][m];
-            d[2 * m]     = -e[0][m];
+            d[2 * m - 1] = -q[0 * cols + m];
+            d[2 * m]     = -e[0 * cols + m];
         }
 
         // Evaluate continued fraction via forward recurrence - eq. (21)

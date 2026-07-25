@@ -72,9 +72,6 @@ methods = [
 
 t_values = np.arange(1.0, 11.0)
 
-out_dir = os.path.join(os.path.dirname(__file__), "build")
-os.makedirs(out_dir, exist_ok=True)
-
 for fname, Fs, ft in functions:
     for mname, algo in methods:
         rows = []
@@ -86,7 +83,7 @@ for fname, Fs, ft in functions:
             err = abs(ftn - fta) / max(abs(fta), 1e-30)
             rows.append([t, fta, ftn, err])
 
-        out = os.path.join(out_dir, f"py_{fname}_{mname}.csv")
+        out = f"py_{fname}_{mname}.csv"
         np.savetxt(out, np.array(rows),
                    delimiter=",", header="t,fta,ftn,err", comments="")
         print(out)

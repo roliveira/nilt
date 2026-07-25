@@ -99,7 +99,7 @@ Each algorithm exposes tunable parameters (identical names in C++ and Python):
 
 ## Test Functions
 
-The [verification suite](examples/verification/) evaluates all methods against known analytical Laplace transform functions:
+The [verification suite](verification/) evaluates all methods against known analytical Laplace transform functions:
 
 | # | f(t) | F(s) | Source |
 |---|------|------|--------|
@@ -117,7 +117,7 @@ The [verification suite](examples/verification/) evaluates all methods against k
 
 ## Benchmark Results
 
-See the [verification example](examples/verification/) for full the results. The table
+See the [verification directory](verification/) for the full results. The table
 below shows a test function from Stehfest (1970) ($f(t) = 1/\sqrt{\pi t}$) as an example:
 
 | t | f(t) | Stehfest | err | Talbot | err | De Hoog | err |
@@ -143,7 +143,7 @@ The library is built and installed from `CMakeLists.txt` using CMake (+3.19). If
 Install the headers and CMake config files to a chosen prefix:
 
 ```bash
-cmake -B build -DNILT_BUILD_EXAMPLES=OFF -DCMAKE_INSTALL_PREFIX=/path/to/install
+cmake -B build -DCMAKE_INSTALL_PREFIX=/path/to/install
 cmake --build build
 cmake --install build
 ```
@@ -199,13 +199,17 @@ uv run pytest                  # or simply pytest (with venv activated)
 ## Running the Verification Suite
 
 ```bash
-# C++
-cd examples/verification/build
-./verification                 # writes CSVs to cwd
-python ../plot_verification.py # reads from build/, writes PNGs there
+# C++ (from repo root)
+cmake -B build -DNILT_BUILD_VERIFICATION=ON -DCMAKE_BUILD_TYPE=Release
+cmake --build build
+cd build
+./verification                              # writes CSVs to cwd
+python ../verification/plot_verification.py  # reads from build/, writes PNGs there
+python ../verification/plot_benchmark.py
 
 # Python (from repo root, with .venv activated)
-python examples/verification/verification.py   # writes py_*.csv to build/
+python verification/verification.py          # writes CSVs to build/
+python verification/benchmark_timing.py
 ```
 
 
@@ -214,14 +218,13 @@ python examples/verification/verification.py   # writes py_*.csv to build/
 Several physics examples are organized by domain in `examples/`, each comparing
 all three inversion methods against the known analytical solution:
 
-| Directory       | Example              | Physics                                                   | Dimension            |
-|-----------------|----------------------|-----------------------------------------------------------|----------------------|
-| `verification/` | `verification`       | 10 standard test functions (Stehfest & Abate-Whitt)       | -                    |
-| `transport/`    | `sphere_diffusion`   | Average concentration in a diffusing sphere               | 1D (radial)          |
-| `transport/`    | `cylinder_diffusion` | Average concentration in a diffusing cylinder             | 2D (axisymmetric)    |
-| `transport/`    | `advection_plume_2d` | Instantaneous release in uniform flow                     | 2D (x, y)            |
-| `groundwater/`  | `theis_well`         | Drawdown from a pumping well (Theis 1935)                 | 1D (time & distance) |
-| `groundwater/`  | `well_dipole`        | Pumping + injection well dipole                           | 2D (x, y)            |
+| Directory               | Example              | Physics                                                   | Dimension            |
+|-------------------------|----------------------|-----------------------------------------------------------|----------------------|
+| `examples/transport/`   | `sphere_diffusion`   | Average concentration in a diffusing sphere               | 1D (radial)          |
+| `examples/transport/`   | `cylinder_diffusion` | Average concentration in a diffusing cylinder             | 2D (axisymmetric)    |
+| `examples/transport/`   | `advection_plume_2d` | Instantaneous release in uniform flow                     | 2D (x, y)            |
+| `examples/groundwater/` | `theis_well`         | Drawdown from a pumping well (Theis 1935)                 | 1D (time & distance) |
+| `examples/groundwater/` | `well_dipole`        | Pumping + injection well dipole                           | 2D (x, y)            |
 
 Each subdirectory contains a `README.md` with the mathematical formulation and
 a `plot_<example>.py` script to visualize the results. Every C++ example has a matching

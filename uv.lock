@@ -457,8 +457,8 @@ wheels = [
 ]
 
 [[package]]
-name = "nilt"
-version = "2.0.2"
+name = "nilt-python"
+version = "3.1.2"
 source = { editable = "." }
 dependencies = [
     { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },

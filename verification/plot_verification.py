@@ -26,7 +26,7 @@ FUNC_LABELS = {
     10: r"$f(t) = e^{-t}\sin t$",
 }
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "utils"))
+sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "examples" / "utils"))
 from plot_args import create_argument_parser as _base_parser
 
 
