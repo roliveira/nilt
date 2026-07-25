@@ -37,8 +37,9 @@ public:
         // Evaluate F(s) at quadrature points
         std::vector<std::complex<double>> Fc(twoM + 1);
         Fc[0] = 0.5 * Fs(std::complex<double>(gamma, 0.0));
+        
         for (int i = 1; i <= twoM; ++i)
-        Fc[i] = Fs(std::complex<double>(gamma, i * pi / T));
+            Fc[i] = Fs(std::complex<double>(gamma, i * pi / T));
         
         // Quotient-difference (QD) algorithm - eq. (20) of De Hoog et al. 1982
         std::vector<std::complex<double>> e( (twoM + 1) * cols, 0.0);
