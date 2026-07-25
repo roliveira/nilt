@@ -39,9 +39,7 @@ def time_inversion(algo, Fs):
     return (t1 - t0) / REPEATS * 1e6  # seconds -> microseconds
 
 
-out_dir = os.path.join(os.path.dirname(__file__), "build")
-os.makedirs(out_dir, exist_ok=True)
-out = os.path.join(out_dir, "benchmark_timing_python.csv")
+out = "benchmark_timing_python.csv"
 
 with open(out, "w") as f:
     f.write("method,param,time_us\n")

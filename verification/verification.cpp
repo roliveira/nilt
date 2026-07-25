@@ -22,6 +22,6 @@
 
 int main()
 {
-    create_results_table("verification");
+    create_results_table("cpp");
     return EXIT_SUCCESS;
 }

@@ -26,12 +26,17 @@ Produces 30 CSV files (10 functions x 3 methods), each with columns
 ## Running
 
 ```bash
-# from the examples/verification/build directory
+# Build (from the repo root)
+cmake -B build -DNILT_BUILD_VERIFICATION=ON
+cmake --build build
+
+# Run C++ verification (from the build/ directory)
+cd build
 ./verification
 
-# plot results (reads/writes from build/ by default)
-python ../plot_verification.py
-python ../plot_benchmark.py
+# Plot results (from the build/ directory)
+python ../verification/plot_verification.py
+python ../verification/plot_benchmark.py
 ```
 
 ## References
