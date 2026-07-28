@@ -2,96 +2,14 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "nilt.hpp"
-#include "test_tolerances.hpp"
+#include "testfunctions.hpp"
+#include "conftest.hpp"
 
 using Catch::Matchers::WithinRel;
 using Catch::Matchers::WithinAbs;
 
-// F(s) = 1/(s+1)  =>  f(t) = exp(-t)
-static double Fs_exp_decay(double s) { return 1.0 / (s + 1.0); }
 
-// F(s) = 1/s^2  =>  f(t) = t
-static double Fs_ramp(double s) { return 1.0 / (s * s); }
-
-// F(s) = 1/s^4  =>  f(t) = t^3/6
-static double Fs_cubic(double s) { return 1.0 / (s * s * s * s); }
-
-TEST_CASE("Stehfest inverts exp_decay 1/(s+1) to exp(-t) at small t",
-          "[stehfest][exp_decay]")
-{
-    nilt::Stehfest algo;
-
-    SECTION("t = 1.0") {
-        double result = nilt::invert(algo, Fs_exp_decay, 1.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-1.0), STEHFEST_EXP_SMALL_REL_TOL));
-    }
-    SECTION("t = 2.0") {
-        double result = nilt::invert(algo, Fs_exp_decay, 2.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-2.0), STEHFEST_EXP_SMALL_REL_TOL));
-    }
-    SECTION("t = 3.0") {
-        double result = nilt::invert(algo, Fs_exp_decay, 3.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-3.0), STEHFEST_EXP_SMALL_REL_TOL));
-    }
-}
-
-TEST_CASE("Stehfest inverts exp_decay 1/(s+1) at large t",
-          "[stehfest][exp_decay][large_t]")
-{
-    nilt::Stehfest algo;
-
-    SECTION("t = 5.0") {
-        double result = nilt::invert(algo, Fs_exp_decay, 5.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-5.0), STEHFEST_EXP_MEDIUM_REL_TOL));
-    }
-    SECTION("t = 10.0") {
-        double result = nilt::invert(algo, Fs_exp_decay, 10.0);
-        REQUIRE_THAT(result, WithinRel(std::exp(-10.0), STEHFEST_EXP_LARGE_REL_TOL));
-    }
-}
-
-TEST_CASE("Stehfest inverts 1/s^2 to t",
-          "[stehfest][ramp]")
-{
-    nilt::Stehfest algo;
-
-    for (double t : {1.0, 3.0, 7.0, 10.0}) {
-        CAPTURE(t);
-        double result = nilt::invert(algo, Fs_ramp, t);
-        REQUIRE_THAT(result, WithinRel(t, STEHFEST_RAMP_REL_TOL));
-    }
-}
-
-TEST_CASE("Stehfest inverts 1/s^4 to t^3/6",
-          "[stehfest][cubic]")
-{
-    nilt::Stehfest algo;
-
-    for (double t : {1.0, 4.0, 8.0}) {
-        CAPTURE(t);
-        double expected = t * t * t / 6.0;
-        double result = nilt::invert(algo, Fs_cubic, t);
-        REQUIRE_THAT(result, WithinRel(expected, STEHFEST_CUBIC_REL_TOL));
-    }
-}
-
-TEST_CASE("Stehfest with N=12 inverts exp_decay",
-          "[stehfest][parameters]")
-{
-    nilt::Stehfest algo;
-    algo.N = 12;
-
-    double result = nilt::invert(algo, Fs_exp_decay, 2.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-2.0), STEHFEST_EXP_MEDIUM_REL_TOL));
-}
-
-TEST_CASE("Stehfest default N is 18", "[stehfest][defaults]")
-{
-    nilt::Stehfest algo;
-    REQUIRE(algo.N == 18);
-}
-
-TEST_CASE("Stehfest name is Stehfest", "[stehfest][name]")
+TEST_CASE("Stehfest name is really Stehfest", "[stehfest][name]")
 {
     REQUIRE(std::string(nilt::Stehfest::name) == "Stehfest");
 }
@@ -99,24 +17,24 @@ TEST_CASE("Stehfest name is Stehfest", "[stehfest][name]")
 TEST_CASE("Stehfest throws domain_error for t <= 0", "[stehfest][domain]")
 {
     nilt::Stehfest algo;
-    REQUIRE_THROWS_AS(nilt::invert(algo, Fs_exp_decay, 0.0), std::domain_error);
-    REQUIRE_THROWS_AS(nilt::invert(algo, Fs_exp_decay, -1.0), std::domain_error);
+    REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, 0.0), std::domain_error);
+    REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, -1.0), std::domain_error);
 }
 
 TEST_CASE("Stehfest accepts lambda returning real", "[stehfest][callable]")
 {
     nilt::Stehfest algo;
-    auto Fs = [](double s) { return 1.0 / (s + 1.0); };
+    auto Fs = [](double s) { return Fs4<double>(s); };
     double result = nilt::invert(algo, Fs, 1.0);
-    REQUIRE_THAT(result, WithinRel(std::exp(-1.0), STEHFEST_EXP_SMALL_REL_TOL));
+    REQUIRE_THAT(result, WithinRel(ft4<double>(1.0), TOL["STEHFEST_REL_TOL_SMALL"]));
 }
 
 TEST_CASE("Stehfest direct call matches free function",
           "[stehfest][api]")
 {
     nilt::Stehfest algo;
-    double via_free = nilt::invert(algo, Fs_exp_decay, 3.0);
-    double via_call = algo(Fs_exp_decay, 3.0);
+    double via_free = nilt::invert(algo, Fs4<double>, 3.0);
+    double via_call = algo(Fs4<double>, 3.0);
     REQUIRE(via_free == via_call);
 }
 
@@ -127,12 +45,13 @@ TEST_CASE("Stehfest coefficients sum to zero for even N",
         CAPTURE(N);
         auto coeff = nilt::Stehfest::coefficients(N);
         REQUIRE(coeff.size() == static_cast<std::size_t>(N));
+        
         double sum = 0.0;
         for (double c : coeff)
             sum += c;
-        // Stehfest coefficients for the weights satisfy sum(V_i) ~ 0
-        // but the actual property is sum(V_i * i) = ln2 * N/2
-        // Check each coefficient is finite
+        
+        REQUIRE_THAT(sum, WithinAbs(0.0, TOL["STEHFEST_REL"]));
+
         for (double c : coeff) {
             REQUIRE(std::isfinite(c));
         }

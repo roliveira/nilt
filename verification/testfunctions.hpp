@@ -27,7 +27,7 @@ template<typename T> T Fs4(T s) { return 1.0/(s+1.0); }
 
 // f5: f(t) = sin(sqrt(2t)),        F(s) = sqrt(pi/(2s^3)) * exp(-1/(2s))
 template<typename T> T ft5(T t) { return std::sin(std::sqrt(2.0*t)); }
-template<typename T> T Fs5(T s) { return std::sqrt(nilt::pi/(2.0*std::pow(s, 3.0)))*std::exp(-1.0/(2.0*s)); }
+template<typename T> T Fs5(T s) { return std::sqrt(nilt::pi/2.0) * std::pow(s, -1.5) * std::exp(-1.0/(2.0*s)); }
 
 // Abate & Whitt (2006) test functions
 
@@ -50,6 +50,46 @@ template<typename T> T Fs9(T s) { return s/(s*s+1.0); }
 // f10: f(t) = exp(-t)*sin(t),      F(s) = 1/((s+1)^2+1)
 template<typename T> T ft10(T t) { return std::exp(-t)*std::sin(t); }
 template<typename T> T Fs10(T s) { return 1.0/((s+1.0)*(s+1.0)+1.0); }
+
+
+struct RealTestPair {
+    const char* name;
+    double (*ft)(double);
+    double (*Fs)(double);
+};
+
+const RealTestPair cases_real[] = {
+    { "f1",  ft1<double>,  Fs1<double>  }, 
+    { "f2",  ft2<double>,  Fs2<double>  }, 
+    { "f3",  ft3<double>,  Fs3<double>  }, 
+    { "f4",  ft4<double>,  Fs4<double>  }, 
+    { "f5",  ft5<double>,  Fs5<double>  }, 
+    { "f6",  ft6<double>,  Fs6<double>  }, 
+    { "f7",  ft7<double>,  Fs7<double>  }, 
+    { "f8",  ft8<double>,  Fs8<double>  }, 
+    { "f9",  ft9<double>,  Fs9<double>  }, 
+    { "f10", ft10<double>, Fs10<double> }
+};
+
+
+struct ComplexTestPair {
+    const char* name;
+    double (*ft)(double);
+    std::complex<double> (*Fs)(std::complex<double>);
+};
+
+const ComplexTestPair cases_complex[] = {
+    { "f1", ft1<double>,  Fs1<std::complex<double>>  }, 
+    { "f2", ft2<double>,  Fs2<std::complex<double>>  }, 
+    { "f3", ft3<double>,  Fs3<std::complex<double>>  }, 
+    { "f4", ft4<double>,  Fs4<std::complex<double>>  }, 
+    { "f5", ft5<double>,  Fs5<std::complex<double>>  }, 
+    { "f6", ft6<double>,  Fs6<std::complex<double>>  }, 
+    { "f7", ft7<double>,  Fs7<std::complex<double>>  }, 
+    { "f8", ft8<double>,  Fs8<std::complex<double>>  }, 
+    { "f9", ft9<double>,  Fs9<std::complex<double>>  }, 
+    { "f10", ft10<double>, Fs10<std::complex<double>> }
+};
 
 
 #endif // NILT_TESTFUNCTIONS_HEADER

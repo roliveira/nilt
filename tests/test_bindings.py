@@ -1,7 +1,5 @@
-"""Tests for the pybind11 binding layer: type exposure, dispatch, and API surface."""
-
-import numpy as np
 import pytest
+import numpy as np
 
 import nilt
 
@@ -26,29 +24,29 @@ class TestModuleExportsAllSymbols:
 
 class TestInvertDispatchRejectsInvalidAlgorithm:
 
-    def test_raises_for_string_algorithm(self):
+    def test_raises_for_string_algorithm(self, Fs):
         with pytest.raises((TypeError, ValueError)):
-            nilt.invert("not_an_algo", lambda s: 1.0 / (s + 1.0), 1.0)
+            nilt.invert("not_an_algo", Fs, 1.0)
 
-    def test_raises_for_int_algorithm(self):
+    def test_raises_for_int_algorithm(self, Fs):
         with pytest.raises((TypeError, ValueError)):
-            nilt.invert(42, lambda s: 1.0 / (s + 1.0), 1.0)
+            nilt.invert(42, Fs, 1.0)
 
 
 class TestInvertDispatchScalarVsArray:
 
-    def test_scalar_input_returns_float(self):
-        result = nilt.invert(nilt.Talbot(), lambda s: 1.0 / (s + 1.0), 1.0)
+    def test_scalar_input_returns_float(self, Fs):
+        result = nilt.invert(nilt.Talbot(), Fs, 1.0)
         assert isinstance(result, float)
 
-    def test_ndarray_input_returns_ndarray(self):
-        t = np.array([1.0, 2.0])
-        result = nilt.invert(nilt.Talbot(), lambda s: 1.0 / (s + 1.0), t)
+    def test_ndarray_input_returns_ndarray(self, Fs):
+        t = np.array([1.0, 2.0, 3.0])
+        result = nilt.invert(nilt.Talbot(), Fs, t)
         assert isinstance(result, np.ndarray)
 
-    def test_single_element_array_returns_ndarray(self):
+    def test_single_element_array_returns_ndarray(self, Fs):
         t = np.array([1.0])
-        result = nilt.invert(nilt.Talbot(), lambda s: 1.0 / (s + 1.0), t)
+        result = nilt.invert(nilt.Talbot(), Fs, t)
         assert isinstance(result, np.ndarray)
         assert len(result) == 1
 
@@ -63,14 +61,15 @@ class TestStehfestBindingExposesMutableN:
         algo.N = 10
         assert algo.N == 10
 
-    def test_modified_N_affects_result(self):
-        Fs = lambda s: 1.0 / (s + 1.0)
+    def test_modified_N_affects_result(self, Fs):
         algo_default = nilt.Stehfest()
         algo_small = nilt.Stehfest()
         algo_small.N = 6
+
         r_default = nilt.invert(algo_default, Fs, 1.0)
         r_small = nilt.invert(algo_small, Fs, 1.0)
-        assert r_default != r_small
+
+        assert r_default != pytest.approx(r_small, rel=1e-6)
 
 
 class TestTalbotBindingExposesMutableParameters:
@@ -123,15 +122,15 @@ class TestAllThreeAlgorithmsCallable:
     """Each algorithm class supports direct __call__ with scalar and array."""
 
     @pytest.mark.parametrize("AlgoClass", [nilt.Stehfest, nilt.Talbot, nilt.DeHoog])
-    def test_scalar_call_returns_float(self, AlgoClass):
+    def test_scalar_call_returns_float(self, AlgoClass, Fs):
         algo = AlgoClass()
-        result = algo(lambda s: 1.0 / (s + 1.0), 1.0)
+        result = algo(Fs, 1.0)
         assert isinstance(result, float)
 
     @pytest.mark.parametrize("AlgoClass", [nilt.Stehfest, nilt.Talbot, nilt.DeHoog])
-    def test_array_call_returns_ndarray(self, AlgoClass):
+    def test_array_call_returns_ndarray(self, AlgoClass, Fs):
         algo = AlgoClass()
-        t = np.array([1.0, 2.0])
-        result = algo(lambda s: 1.0 / (s + 1.0), t)
+        t = np.array([1.0, 2.0, 3.0])
+        result = algo(Fs, t)
         assert isinstance(result, np.ndarray)
-        assert len(result) == 2
+        assert len(result) == 3
