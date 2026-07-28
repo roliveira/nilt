@@ -2,6 +2,15 @@
 
 <!-- version list -->
 
+## v3.1.4 (2026-07-28)
+
+### Bug Fixes
+
+- Removed duplicated definitions and irrelevant tests
+  ([#36](https://github.com/roliveira/nilt/pull/36),
+  [`34683df`](https://github.com/roliveira/nilt/commit/34683dfe302a6a9c13224661cbf0ee0e225e79e3))
+
+
 ## v3.1.3 (2026-07-25)
 
 ### Bug Fixes
