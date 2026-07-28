@@ -33,6 +33,7 @@ wheel.packages = ["python/nilt"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+pythonpath = ["."]
 
 [tool.semantic_release]
 # Keep pyproject.toml and CMakeLists.txt in lockstep.

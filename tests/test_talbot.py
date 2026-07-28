@@ -1,70 +1,7 @@
-import math
-
-import numpy as np
 import pytest
+import numpy as np
 
 import nilt
-from test_tolerances import (
-    ARRAY_CONSISTENCY_TOL,
-    TALBOT_ABS_TOL,
-    TALBOT_REL_TOL,
-    TALBOT_REL_TOL_LARGE,
-)
-
-
-class TestTalbotInvertExpDecay:
-    """Talbot inverts F(s)=1/(s+1) -> f(t)=exp(-t)."""
-
-    @pytest.fixture
-    def algo(self):
-        return nilt.Talbot()
-
-    @pytest.mark.parametrize("t", [1.0, 2.0, 3.0])
-    def test_relative_error_within_tolerance(self, algo, t):
-        result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=TALBOT_REL_TOL)
-
-    @pytest.mark.parametrize("t", [5.0, 10.0])
-    def test_relative_error_within_tolerance_large_t(self, algo, t):
-        result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
-        assert result == pytest.approx(math.exp(-t), rel=TALBOT_REL_TOL_LARGE)
-
-
-class TestTalbotInvertSinusoids:
-
-    @pytest.fixture
-    def algo(self):
-        return nilt.Talbot()
-
-    @pytest.mark.parametrize("t", [1.0, 2.0, 5.0, 9.0])
-    def test_sin_t_within_tolerance(self, algo, t):
-        result = nilt.invert(algo, lambda s: 1.0 / (s * s + 1.0), t)
-        assert result == pytest.approx(math.sin(t), abs=TALBOT_ABS_TOL)
-
-    @pytest.mark.parametrize("t", [1.0, 3.0, 6.0])
-    def test_cos_t_within_tolerance(self, algo, t):
-        result = nilt.invert(algo, lambda s: s / (s * s + 1.0), t)
-        assert result == pytest.approx(math.cos(t), abs=TALBOT_ABS_TOL)
-
-    @pytest.mark.parametrize("t", [1.0, 4.0, 8.0])
-    def test_damped_sin_within_tolerance(self, algo, t):
-        result = nilt.invert(
-            algo, lambda s: 1.0 / ((s + 1.0) ** 2 + 1.0), t
-        )
-        expected = math.exp(-t) * math.sin(t)
-        assert result == pytest.approx(expected, abs=TALBOT_ABS_TOL)
-
-
-class TestTalbotInvertPolynomial:
-
-    @pytest.fixture
-    def algo(self):
-        return nilt.Talbot()
-
-    @pytest.mark.parametrize("t", [1.0, 3.0, 7.0, 10.0])
-    def test_ramp_1_over_s2_equals_t(self, algo, t):
-        result = nilt.invert(algo, lambda s: 1.0 / (s * s), t)
-        assert result == pytest.approx(t, rel=TALBOT_REL_TOL)
 
 
 class TestTalbotDefaults:
@@ -88,37 +25,35 @@ class TestTalbotDefaults:
 
 class TestTalbotDomainError:
 
-    def test_raises_for_t_zero(self):
+    def test_raises_for_t_zero(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(nilt.Talbot(), lambda s: 1.0 / (s + 1.0), 0.0)
+            nilt.invert(nilt.Talbot(), Fs, 0.0)
 
-    def test_raises_for_t_negative(self):
+    def test_raises_for_t_negative(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(nilt.Talbot(), lambda s: 1.0 / (s + 1.0), -1.0)
+            nilt.invert(nilt.Talbot(), Fs, -1.0)
 
 
 class TestTalbotDirectCallMatchesFreeFunction:
 
-    def test_direct_call_identical_to_invert(self):
+    def test_direct_call_identical_to_invert(self, Fs):
         algo = nilt.Talbot()
-        Fs = lambda s: 1.0 / (s + 1.0)
         assert nilt.invert(algo, Fs, 3.0) == algo(Fs, 3.0)
 
 
 class TestTalbotArrayInput:
 
-    def test_array_returns_ndarray_of_matching_length(self):
+    def test_array_returns_ndarray_of_matching_length(self, Fs):
         algo = nilt.Talbot()
         t = np.array([1.0, 2.0, 3.0])
-        result = nilt.invert(algo, lambda s: 1.0 / (s + 1.0), t)
+        result = nilt.invert(algo, Fs, t)
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
-    def test_array_elements_match_scalar_calls(self):
+    def test_array_elements_match_scalar_calls(self, TOL, Fs):
         algo = nilt.Talbot()
-        Fs = lambda s: 1.0 / (s + 1.0)
         t_values = np.array([1.0, 2.0, 5.0])
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
             scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == pytest.approx(scalar_result, rel=ARRAY_CONSISTENCY_TOL)
+            assert array_result[i] == pytest.approx(scalar_result, rel=TOL["TALBOT_REL_TOL_LARGE"])

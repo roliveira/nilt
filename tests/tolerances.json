@@ -1,0 +1,13 @@
+{
+    "DEHOOG_REL"           : 1e-5,
+    "DEHOOG_REL_TOL"       : 1e-10,
+    "DEHOOG_REL_TOL_LARGE" : 1e-9,
+    
+    "TALBOT_REL"           : 1e-5,
+    "TALBOT_REL_TOL"       : 1e-10,
+    "TALBOT_REL_TOL_LARGE" : 1e-6,
+    
+    "STEHFEST_REL"           : 1e-2,
+    "STEHFEST_REL_TOL_SMALL" : 1e-4,
+    "STEHFEST_REL_TOL_LARGE" : 0.1
+}
