@@ -15,7 +15,7 @@ References:
 import numpy as np
 import nilt
 
-from testfunctions import functions
+from testfunctions import TEST_FUNCTIONS
 
 
 methods = [
@@ -26,7 +26,9 @@ methods = [
 
 t_values = np.arange(1.0, 11.0)
 
-for fname, Fs, ft in functions:
+for fname, funcs in TEST_FUNCTIONS.items():
+    Fs = funcs["Fs"]
+    ft = funcs["ft"]
     for mname, algo in methods:
         rows = []
         for t in t_values:

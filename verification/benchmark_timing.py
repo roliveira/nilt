@@ -45,7 +45,7 @@ with open(out, "w") as f:
     f.write("method,param,time_us\n")
 
     # Stehfest: vary N (must be even)
-    for N in [4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30]:
+    for N in [4, 6, 8, 10, 12, 14, 16, 18, 20]:
         algo = nilt.Stehfest()
         algo.N = N
         us = time_inversion(algo, Fs_real)
@@ -53,7 +53,7 @@ with open(out, "w") as f:
         print(f"Stehfest  N={N:3d}  {us:.1f} us")
 
     # Talbot: vary N
-    for N in [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]:
+    for N in [1, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100]:
         algo = nilt.Talbot()
         algo.N = N
         us = time_inversion(algo, Fs_cplx)
