@@ -30,20 +30,23 @@ class TestStehfestDomainError:
 
 class TestStehfestInvalidArgument:
     
-    def test_raises_for_N_odd(self):
+    def test_raises_for_N_odd(self, Fs):
         algo = nilt.Stehfest()
+        algo.N = 5
         with pytest.raises(ValueError):
-            algo.N = 5
+            nilt.invert(algo, Fs, 1.0)
 
-    def test_raises_for_N_too_small(self):
+    def test_raises_for_N_too_small(self, Fs):
         algo = nilt.Stehfest()
+        algo.N = 0
         with pytest.raises(ValueError):
-            algo.N = 0
+            nilt.invert(algo, Fs, 1.0)
 
-    def test_raises_for_N_too_large(self):
+    def test_raises_for_N_too_large(self, Fs):
         algo = nilt.Stehfest()
+        algo.N = 22
         with pytest.raises(ValueError):
-            algo.N = 22
+            nilt.invert(algo, Fs, 1.0)
 
 
 class TestStehfestDirectCallMatchesFreeFunction:
@@ -64,10 +67,10 @@ class TestStehfestArrayInput:
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
-    def test_array_elements_match_scalar_calls(self, TOL, Fs):
+    def test_array_elements_match_scalar_calls(self, Fs):
         algo = nilt.Stehfest()
         t_values = np.array([1.0, 2.0, 3.0, 4.0])
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
             scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == pytest.approx(scalar_result, rel=TOL["STEHFEST_REL_TOL_LARGE"])
+            assert array_result[i] == pytest.approx(scalar_result, rel=1e-12)

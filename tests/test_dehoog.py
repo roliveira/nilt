@@ -58,10 +58,10 @@ class TestDeHoogArrayInput:
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
-    def test_array_elements_match_scalar_calls(self, TOL, Fs):
+    def test_array_elements_match_scalar_calls(self, Fs):
         algo = nilt.DeHoog()
         t_values = np.array([1.0, 2.0, 5.0])
         array_result = nilt.invert(algo, Fs, t_values)
         for i, t in enumerate(t_values):
             scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == pytest.approx(scalar_result, rel=TOL["DEHOOG_REL_TOL_LARGE"])
+            assert array_result[i] == pytest.approx(scalar_result, rel=1e-12)
