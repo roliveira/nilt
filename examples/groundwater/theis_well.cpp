@@ -35,6 +35,7 @@
 #include <iostream>
 
 #include "nilt.hpp"
+#include "util.hpp"
 #include "../utils/bessel.hpp"
 
 // Exponential integral E1(u) for real positive u.
@@ -103,7 +104,7 @@ int main()
     const double r_obs = 100.0;  // observation distance [ft]
 
     auto Fs_time = [=](auto s) {
-        return Q / (2.0 * nilt::pi * T * s)
+        return Q / (2.0 * nilt::util::PI * T * s)
                * bessel::K0(r_obs * std::sqrt(s * S / T));
     };
 
@@ -134,7 +135,7 @@ int main()
         for (double r = 1.0; r <= 1000.0; r += 3.0)
         {
             auto Fs_r = [=](auto s) {
-                return Q / (2.0 * nilt::pi * T * s)
+                return Q / (2.0 * nilt::util::PI * T * s)
                        * bessel::K0(r * std::sqrt(s * S / T));
             };
             ofs << r

@@ -14,6 +14,9 @@
 #include <cmath>
 #include <complex>
 
+#include "util.hpp"
+
+
 namespace bessel {
 
 static constexpr double euler_gamma = 0.5772156649015329;
@@ -91,7 +94,7 @@ T K0(T z)
             for (int j = 0; j < k; ++j) contrib *= iz;
             sum += contrib;
         }
-        return std::sqrt(nilt::pi / (2.0 * z)) * std::exp(-z) * sum;
+        return std::sqrt(nilt::util::PI / (2.0 * z)) * std::exp(-z) * sum;
     }
 }
 

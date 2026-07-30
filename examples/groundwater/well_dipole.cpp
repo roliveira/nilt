@@ -34,6 +34,7 @@
 #include <iostream>
 
 #include "nilt.hpp"
+#include "util.hpp"
 #include "../utils/bessel.hpp"
 
 // Exponential integral E1(u) for real positive u.
@@ -89,15 +90,15 @@ int main()
 
     auto Fs_obs = [=](auto s) {
         auto sa = std::sqrt(s / alpha);
-        return Qp / (2.0 * nilt::pi * T_aq * s) * bessel::K0(rp_obs * sa)
-             - Qi / (2.0 * nilt::pi * T_aq * s) * bessel::K0(ri_obs * sa);
+        return Qp / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(rp_obs * sa)
+             - Qi / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(ri_obs * sa);
     };
 
     auto analytical_obs = [=](double t) {
         double up = rp_obs * rp_obs * S / (4.0 * T_aq * t);
         double ui = ri_obs * ri_obs * S / (4.0 * T_aq * t);
-        return Qp / (4.0 * nilt::pi * T_aq) * expint_e1(up)
-             - Qi / (4.0 * nilt::pi * T_aq) * expint_e1(ui);
+        return Qp / (4.0 * nilt::util::PI * T_aq) * expint_e1(up)
+             - Qi / (4.0 * nilt::util::PI * T_aq) * expint_e1(ui);
     };
 
     nilt::Stehfest stehfest;
@@ -142,13 +143,13 @@ int main()
 
                 double up = dp * dp * S / (4.0 * T_aq * t_snap);
                 double ui = di * di * S / (4.0 * T_aq * t_snap);
-                double anal = Qp / (4.0 * nilt::pi * T_aq) * expint_e1(up)
-                            - Qi / (4.0 * nilt::pi * T_aq) * expint_e1(ui);
+                double anal = Qp / (4.0 * nilt::util::PI * T_aq) * expint_e1(up)
+                            - Qi / (4.0 * nilt::util::PI * T_aq) * expint_e1(ui);
 
                 auto Fs_xy = [=](auto s) {
                     auto sa = std::sqrt(s / alpha);
-                    return Qp / (2.0 * nilt::pi * T_aq * s) * bessel::K0(dp * sa)
-                         - Qi / (2.0 * nilt::pi * T_aq * s) * bessel::K0(di * sa);
+                    return Qp / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(dp * sa)
+                         - Qi / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(di * sa);
                 };
                 double nilt_val = nilt::invert(talbot, Fs_xy, t_snap);
 

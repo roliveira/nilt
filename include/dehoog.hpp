@@ -10,6 +10,9 @@
 #include <stdexcept>
 #include <vector>
 
+#include "util.hpp"
+
+
 namespace nilt {
 
 class DeHoog
@@ -39,7 +42,7 @@ public:
         Fc[0] = 0.5 * Fs(std::complex<double>(gamma, 0.0));
         
         for (int i = 1; i <= twoM; ++i)
-            Fc[i] = Fs(std::complex<double>(gamma, i * pi / T));
+            Fc[i] = Fs(std::complex<double>(gamma, i * nilt::util::PI / T));
         
         // Quotient-difference (QD) algorithm - eq. (20) of De Hoog et al. 1982
         std::vector<std::complex<double>> e( (twoM + 1) * cols, 0.0);
@@ -70,7 +73,7 @@ public:
         }
 
         // Evaluate continued fraction via forward recurrence - eq. (21)
-        std::complex<double> z(std::cos(pi * t / T), std::sin(pi * t / T));
+        std::complex<double> z(std::cos(nilt::util::PI * t / T), std::sin(nilt::util::PI * t / T));
 
         std::vector<std::complex<double>> A(twoM + 2), B(twoM + 2);
         A[0] = 0.0;  A[1] = d[0];

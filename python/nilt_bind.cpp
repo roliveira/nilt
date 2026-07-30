@@ -13,6 +13,8 @@
 #include <pybind11/functional.h>
 
 #include "nilt.hpp"
+#include "util.hpp"
+
 
 namespace py = pybind11;
 
@@ -181,5 +183,5 @@ PYBIND11_MODULE(_nilt, m)
         "float or numpy.ndarray\n"
         "    The inverse Laplace transform f(t).");
 
-    m.attr("pi") = nilt::pi;
+    m.attr("pi") = nilt::util::PI;
 }

@@ -23,10 +23,6 @@
 #include <complex>
 #include <stdexcept>
 
-namespace nilt {
-    static constexpr double pi = 3.14159265358979323846;
-} // namespace nilt
-
 #include "stehfest.hpp"
 #include "talbot.hpp"
 #include "dehoog.hpp"

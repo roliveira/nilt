@@ -11,24 +11,11 @@
 #include <vector>
 #include <algorithm>
 
+#include "util.hpp"
 
 namespace nilt {
 
 namespace {
-
-constexpr double constexpr_pow(double base, int exp) {
-    double result = 1.0;
-    for (int i = 0; i < exp; ++i) 
-        result *= base;
-    return result;
-}
-
-constexpr unsigned long long constexpr_factorial(int n) {
-    unsigned long long x = 1;
-    for (int i = 2; i <= n; ++i) 
-        x *= i;
-    return x;
-}
 
 struct RawRow    { double data[21]  = {0.0}; };
 struct RawMatrix { double data[210] = {0.0}; };
@@ -48,11 +35,11 @@ constexpr RawRow generate_constexpr_row(size_t N) {
         sign = -sign;
 
         for (size_t k = kmin; k <= kmax; ++k) {
-            sum += constexpr_pow(static_cast<double>(k), N2)
-                 * constexpr_factorial(2 * k)
-                 / (constexpr_factorial(k) * constexpr_factorial(k - 1)
-                    * constexpr_factorial(N2 - k) * constexpr_factorial(i + 1 - k)
-                    * constexpr_factorial(2 * k - i - 1));
+            sum += nilt::util::constexpr_pow(static_cast<double>(k), N2)
+                 * nilt::util::constexpr_factorial(2 * k)
+                 / (nilt::util::constexpr_factorial(k) * nilt::util::constexpr_factorial(k - 1)
+                    * nilt::util::constexpr_factorial(N2 - k) * nilt::util::constexpr_factorial(i + 1 - k)
+                    * nilt::util::constexpr_factorial(2 * k - i - 1));
         }
         row.data[i] = sign * sum;
     }
