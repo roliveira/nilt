@@ -26,6 +26,36 @@ constexpr unsigned long long constexpr_factorial(int n) {
     return x;
 }
 
+// Compile-time sin via Taylor series (converges for all x, reduced to [-PI, PI])
+constexpr double constexpr_sin(double x) {
+    // Range reduction to [-PI, PI]
+    while (x > PI)  x -= 2.0 * PI;
+    while (x < -PI) x += 2.0 * PI;
+
+    double term = x;
+    double sum = x;
+    for (int n = 1; n <= 15; ++n) {
+        term *= -x * x / static_cast<double>((2 * n) * (2 * n + 1));
+        sum += term;
+    }
+    return sum;
+}
+
+// Compile-time cos via Taylor series
+constexpr double constexpr_cos(double x) {
+    // Range reduction to [-PI, PI]
+    while (x > PI)  x -= 2.0 * PI;
+    while (x < -PI) x += 2.0 * PI;
+
+    double term = 1.0;
+    double sum = 1.0;
+    for (int n = 1; n <= 15; ++n) {
+        term *= -x * x / static_cast<double>((2 * n - 1) * (2 * n));
+        sum += term;
+    }
+    return sum;
+}
+
 } // namespace util
 } // namespace nilt
 

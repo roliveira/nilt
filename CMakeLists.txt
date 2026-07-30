@@ -36,7 +36,7 @@ if(NILT_BUILD_TESTS)
     enable_testing()
 
     include(FetchContent)
-    
+
     FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
