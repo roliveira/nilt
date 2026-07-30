@@ -52,7 +52,7 @@ int main()
     ofs.precision(6);
 
     // Stehfest: vary N (must be even)
-    for (int N : {4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30})
+    for (int N : {4, 6, 8, 10, 12, 14, 16, 18, 20})
     {
         nilt::Stehfest algo;
         algo.N = N;
@@ -62,7 +62,7 @@ int main()
     }
 
     // Talbot: vary N
-    for (int N : {5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200})
+    for (int N : {1, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100})
     {
         nilt::Talbot algo;
         algo.N = N;

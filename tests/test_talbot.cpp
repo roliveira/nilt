@@ -32,6 +32,14 @@ TEST_CASE("Talbot throws domain_error for t <= 0", "[talbot][domain]")
     REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<std::complex<double>>, -1.0), std::domain_error);
 }
 
+TEST_CASE("Talbot invert with N=64", "[talbot][parameters]")
+{
+    nilt::Talbot algo;
+    algo.N = 64;
+    double result = nilt::invert(algo, Fs4<std::complex<double>>, 2.0);
+    REQUIRE_THAT(result, WithinRel(ft4<double>(2.0), TOL["TALBOT_REL_TOL_LARGE"]));
+}
+
 TEST_CASE("Talbot invert with N=100", "[talbot][parameters]")
 {
     nilt::Talbot algo;
