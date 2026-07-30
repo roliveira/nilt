@@ -1,6 +1,18 @@
 /*
-    De Hoog et al., 1982, An improved method for numerical inversion of Laplace
-    transforms, SIAM J. Sci. Stat. Comput.
+    De Hoog, Knight & Stokes. 1982. An improved method for numerical inversion
+    of Laplace transforms. SIAM J. Sci. Stat. Comput. 3(3), 357-366.
+
+    Implementation notes:
+    - Uses accelerated quotient-difference (QD) algorithm to build a continued
+      fraction from 2M+1 uniformly-spaced samples on a vertical line in the
+      complex s-plane.
+    - No precomputation is possible: all arithmetic depends on the function
+      values Fs(gamma + i*k*PI/T) which vary with t.
+    - Accuracy is controlled by M (more terms = better) and T_FACTOR (larger =
+      fewer aliasing artifacts but slower convergence).
+    - Works with complex-valued Laplace-domain functions.
+    - Heap allocations: 5 vectors of size O(M) to O(M^2).  For large M,
+      consider memory vs. accuracy tradeoff.
 */
 #ifndef NILT_DEHOOG_HEADER
 #define NILT_DEHOOG_HEADER
@@ -20,12 +32,14 @@ class DeHoog
 public:
     static constexpr const char* name = "DeHoog";
 
-    int    M        = 40;       // order of approximation (number of terms)
-    double T_FACTOR = 4.0;      // period factor (T = T_FACTOR * t)
-    double TOL      = 1.0e-16;  // tolerance for integration limit
+    int    M        = 40;       // order of approximation (2M+1 function evaluations)
+    double T_FACTOR = 4.0;      // period factor: T = T_FACTOR * t (controls aliasing)
+    double TOL      = 1.0e-16;  // Bromwich contour damping: gamma = -ln(TOL)/(2T)
 
-    // Evaluate the inverse Laplace transform at time t.
-    // Fs must be callable as Fs(std::complex<double>) -> std::complex<double>.
+    /// Evaluate the inverse Laplace transform at time t.
+    /// @param Fs  Laplace-domain function: Fs(complex<double>) -> complex<double>
+    /// @param t   Evaluation time (must be > 0)
+    /// @return    Approximation of f(t)
     template<typename F>
     double operator()(F&& Fs, double t) const
     {
@@ -37,7 +51,8 @@ public:
         double T     = T_FACTOR * t;
         double gamma = -0.5 * std::log(TOL) / T;
 
-        // Evaluate F(s) at quadrature points
+        // Evaluate F(s) along the vertical line Re(s) = gamma
+        // s_k = gamma + i*k*PI/T,  k = 0, 1, ..., 2M
         std::vector<std::complex<double>> Fc(twoM + 1);
         Fc[0] = 0.5 * Fs(std::complex<double>(gamma, 0.0));
         
@@ -73,6 +88,7 @@ public:
         }
 
         // Evaluate continued fraction via forward recurrence - eq. (21)
+        // z = exp(i*PI*t/T) = exp(i*PI/T_FACTOR) - phase factor on the unit circle
         std::complex<double> z(std::cos(nilt::util::PI * t / T), std::sin(nilt::util::PI * t / T));
 
         std::vector<std::complex<double>> A(twoM + 2), B(twoM + 2);
@@ -86,7 +102,8 @@ public:
             B[n] = B[n - 1] + dz * B[n - 2];
         }
 
-        // Acceleration - eqs. (23)-(24)
+        // Tail acceleration via residual correction - eqs. (23)-(24)
+        // Improves convergence by estimating the tail of the continued fraction
         auto h2M = 0.5 * (1.0 + z * (d[twoM - 1] - d[twoM]));
         auto R2M = -h2M * (1.0 - std::sqrt(1.0 + z * d[twoM] / (h2M * h2M)));
 

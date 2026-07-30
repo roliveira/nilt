@@ -1,6 +1,14 @@
 /*
-    nilt - Numerical Inverse Laplace Transform library
-    Single-header convenience include.
+    nilt - Numerical Inverse Laplace Transform library (C++14, header-only)
+
+    Three algorithms are provided, each suited to different use cases:
+
+      Stehfest - Real-valued F(s) only.  Very fast (constexpr coefficients).
+                 Best for smooth, monotonically decaying transforms.
+      Talbot   - Complex F(s).  Moderate cost (constexpr contour table).
+                 Robust for oscillatory and steep transforms.
+      DeHoog   - Complex F(s).  Highest cost but most accurate for difficult
+                 transforms (discontinuities, long-time behaviour).
 
     Usage:
         #include <nilt.hpp>
@@ -29,7 +37,13 @@
 
 namespace nilt {
 
-// Unified free function: invert(algorithm, F, t)
+/// Unified free function for numerical inversion of Laplace transforms.
+/// @tparam Algo  Algorithm class (Stehfest, Talbot, or DeHoog)
+/// @tparam F     Callable type for the Laplace-domain function
+/// @param  algo  Algorithm instance (may carry tuning parameters)
+/// @param  Fs    Laplace-domain function
+/// @param  t     Time at which to evaluate the inverse
+/// @return       Approximation of f(t)
 template<typename Algo, typename F>
 double invert(const Algo& algo, F&& Fs, double t)
 {
