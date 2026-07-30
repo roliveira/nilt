@@ -28,6 +28,24 @@ class TestStehfestDomainError:
             nilt.invert(algo, Fs, -1.0)
 
 
+class TestStehfestInvalidArgument:
+    
+    def test_raises_for_N_odd(self):
+        algo = nilt.Stehfest()
+        with pytest.raises(ValueError):
+            algo.N = 5
+
+    def test_raises_for_N_too_small(self):
+        algo = nilt.Stehfest()
+        with pytest.raises(ValueError):
+            algo.N = 0
+
+    def test_raises_for_N_too_large(self):
+        algo = nilt.Stehfest()
+        with pytest.raises(ValueError):
+            algo.N = 22
+
+
 class TestStehfestDirectCallMatchesFreeFunction:
 
     def test_direct_call_identical_to_invert(self, Fs):

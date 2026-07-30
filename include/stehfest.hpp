@@ -7,77 +7,116 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <array>
 #include <vector>
+#include <algorithm>
+
 
 namespace nilt {
+
+namespace {
+
+constexpr double constexpr_pow(double base, int exp) {
+    double result = 1.0;
+    for (int i = 0; i < exp; ++i) 
+        result *= base;
+    return result;
+}
+
+constexpr unsigned long long constexpr_factorial(int n) {
+    unsigned long long x = 1;
+    for (int i = 2; i <= n; ++i) 
+        x *= i;
+    return x;
+}
+
+struct RawRow    { double data[21]  = {0.0}; };
+struct RawMatrix { double data[210] = {0.0}; };
+
+constexpr RawRow generate_constexpr_row(size_t N) {
+    RawRow row;
+    if (N < 2 || N > 20 || N % 2 != 0) 
+        return row;
+
+    size_t N2 = N / 2;
+    int sign = (N2 % 2 != 0) ? -1 : 1;
+
+    for (size_t i = 0; i < N; ++i) {
+        size_t kmin = (i + 2) / 2;
+        size_t kmax = std::min(i + 1, N2);
+        double sum = 0.0;
+        sign = -sign;
+
+        for (size_t k = kmin; k <= kmax; ++k) {
+            sum += constexpr_pow(static_cast<double>(k), N2)
+                 * constexpr_factorial(2 * k)
+                 / (constexpr_factorial(k) * constexpr_factorial(k - 1)
+                    * constexpr_factorial(N2 - k) * constexpr_factorial(i + 1 - k)
+                    * constexpr_factorial(2 * k - i - 1));
+        }
+        row.data[i] = sign * sum;
+    }
+    return row;
+}
+
+constexpr RawMatrix generate_constexpr_table() {
+    RawMatrix matrix;
+    for (size_t n = 2; n <= 20; n += 2) {
+        RawRow row = generate_constexpr_row(n);
+        size_t offset = (n / 2 - 1) * 21;
+        for (size_t i = 0; i < 21; ++i) {
+            matrix.data[offset + i] = row.data[i];
+        }
+    }
+    return matrix;
+}
+
+static constexpr RawMatrix CONST_COEFFICIENT_RAW_MATRIX = generate_constexpr_table();
+
+} // namespace
 
 class Stehfest
 {
 public:
     static constexpr const char* name = "Stehfest";
-
+    
     int N = 18;  // number of terms (must be even)
 
     // Evaluate the inverse Laplace transform at time t.
-    // Fs must be callable as Fs(double) -> double.
     template<typename F>
     double operator()(F&& Fs, double t) const
     {
         if (t <= 0.0)
             throw std::domain_error("Stehfest: t must be positive");
+        
+        if (N < 2 || N > 20 || N % 2 != 0) 
+            throw std::invalid_argument("Invalid N: N must be even and between 2 and 20");
 
-        auto coeff = coefficients(N);
+        // Reference the array directly from the helper matrix
+        const double* coeff = &CONST_COEFFICIENT_RAW_MATRIX.data[(N / 2 - 1) * 21];
         double ln2t = std::log(2.0) / t;
         double s = 0.0;
         double y = 0.0;
 
-        for (double c : coeff)
+        for (int i = 0; i < N; ++i)
         {
             s += ln2t;
-            y += c * Fs(s);
+            y += coeff[i] * Fs(s);
         }
 
         return ln2t * y;
     }
 
-    // Compute Stehfest coefficients V_i for i=1..N.
-    static std::vector<double> coefficients(int N)
+    // Returns a vector containing the N coefficients currently in use.
+    std::vector<double> get_coefficients() const
     {
-        int N2 = N / 2;
-        std::vector<double> V(N);
+        if (N < 2 || N > 20 || N % 2 != 0) 
+            throw std::invalid_argument("Invalid N: N must be even and between 2 and 20");
 
-        int sign = (N2 % 2 != 0) ? -1 : 1;
-
-        for (int i = 0; i < N; ++i)
-        {
-            int kmin = (i + 2) / 2;
-            int kmax = std::min(i + 1, N2);
-
-            double sum = 0.0;
-            sign = -sign;
-
-            for (int k = kmin; k <= kmax; ++k)
-            {
-                sum += std::pow(static_cast<double>(k), N2)
-                     * factorial(2 * k)
-                     / (factorial(k) * factorial(k - 1)
-                        * factorial(N2 - k) * factorial(i + 1 - k)
-                        * factorial(2 * k - i - 1));
-            }
-
-            V[i] = sign * sum;
-        }
-
-        return V;
-    }
-
-private:
-    static double factorial(int n)
-    {
-        double x = 1.0;
-        for (int i = 2; i <= n; ++i)
-            x *= i;
-        return x;
+        const double* coeff_ptr = &CONST_COEFFICIENT_RAW_MATRIX.data[(N / 2 - 1) * 21];
+        
+        // Copy only the N valid elements into a vector
+        return std::vector<double>(coeff_ptr, coeff_ptr + N);
     }
 };
 
