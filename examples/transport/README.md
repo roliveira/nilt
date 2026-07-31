@@ -60,13 +60,16 @@ $$C(x,y,t) = \frac{M}{4\pi Dt}\,\exp\!\left(-\frac{(x-vt)^2 + y^2}{4Dt}\right)$$
 ## Running
 
 ```bash
-# from the examples/transport/build directory
+# from the build/ directory
 ./transport_sphere_diffusion
 ./transport_cylinder_diffusion
 ./transport_advection_plume_2d
+python ../examples/transport/sphere_diffusion.py
+python ../examples/transport/cylinder_diffusion.py
+python ../examples/transport/advection_plume_2d.py
 
-# plot results (reads/writes from build/ by default)
-python ../plot_sphere_diffusion.py
-python ../plot_cylinder_diffusion.py
-python ../plot_advection_plume_2d.py
+# plot (reads/writes in current directory)
+python ../examples/transport/plot_sphere_diffusion.py
+python ../examples/transport/plot_cylinder_diffusion.py
+python ../examples/transport/plot_advection_plume_2d.py
 ```

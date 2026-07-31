@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 
-DIR = Path(__file__).parent / "build"
+DIR = Path(".")
 FMT = "png"
 DPI = 600
 MARKEVERY = 5

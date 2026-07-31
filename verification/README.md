@@ -30,13 +30,11 @@ Produces 30 CSV files (10 functions x 3 methods), each with columns
 cmake -B build -DNILT_BUILD_VERIFICATION=ON
 cmake --build build
 
-# Run C++ verification (from the build/ directory)
+# Run from build/ directory (all output goes to cwd)
 cd build
 ./verification
-
-# Plot results (from the build/ directory)
-python ../verification/plot_verification.py
-python ../verification/plot_benchmark.py
+python ../verification/verification.py
+python ../verification/benchmark_timing.py
 ```
 
 ## References

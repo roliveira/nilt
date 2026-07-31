@@ -208,13 +208,12 @@ uv run pytest                  # or simply pytest (with venv activated)
 cmake -B build -DNILT_BUILD_VERIFICATION=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 cd build
-./verification                              # writes CSVs to cwd
-python ../verification/plot_verification.py  # reads from build/, writes PNGs there
-python ../verification/plot_benchmark.py
+./verification
+./benchmark_timing
 
-# Python (from repo root, with .venv activated)
-python verification/verification.py          # writes CSVs to build/
-python verification/benchmark_timing.py
+# Python (from build/ directory)
+python ../verification/verification.py
+python ../verification/benchmark_timing.py
 ```
 
 
@@ -232,9 +231,16 @@ all three inversion methods against the known analytical solution:
 | `examples/groundwater/` | `well_dipole`        | Pumping + injection well dipole                           | 2D (x, y)            |
 
 Each subdirectory contains a `README.md` with the mathematical formulation and
-a `plot_<example>.py` script to visualize the results. Every C++ example has a matching
-Python script (`.py`) that produces identical results. Binaries are placed in a `build/`
-subdirectory next to their sources; the output CSVs and PNGs are also there.
+a `plot_<example>.py` script to visualize the results. Every C++ example has a
+matching Python script that produces identical output. All scripts write to the
+current working directory, so run them from `build/`:
+
+```bash
+cd build
+./groundwater_theis_well                           # C++ -> cpp_*.csv
+python ../examples/groundwater/theis_well.py       # Python -> py_*.csv
+python ../examples/groundwater/plot_theis_well.py  # reads *_.csv, writes *.png
+```
 
 
 ## Contributing

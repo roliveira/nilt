@@ -23,7 +23,6 @@ Reference:
   Oxford University Press.
 """
 
-import os
 import numpy as np
 import nilt
 
@@ -55,8 +54,6 @@ st  = stehfest(Fs, t)
 ta  = talbot(Fs, t)
 dh  = dehoog(Fs, t)
 
-out = os.path.join(os.path.dirname(__file__), "build", "py_transport_sphere_diffusion.csv")
-os.makedirs(os.path.dirname(out), exist_ok=True)
-np.savetxt(out, np.column_stack([t, ana, st, ta, dh]),
+np.savetxt("py_transport_sphere_diffusion.csv", np.column_stack([t, ana, st, ta, dh]),
            delimiter=",", header="t,analytical,stehfest,talbot,dehoog", comments="")
-print(out)
+print("py_transport_sphere_diffusion.csv")

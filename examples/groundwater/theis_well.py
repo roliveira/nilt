@@ -29,7 +29,6 @@ Reference:
   using ground-water storage. Trans. Am. Geophys. Union, 16(2), 519-524.
 """
 
-import os
 import numpy as np
 from scipy.special import exp1, kv
 import nilt
@@ -61,9 +60,6 @@ stehfest = nilt.Stehfest()
 talbot   = nilt.Talbot()
 dehoog   = nilt.DeHoog()
 
-out_dir = os.path.join(os.path.dirname(__file__), "build")
-os.makedirs(out_dir, exist_ok=True)
-
 r_obs = 100.0  # observation distance [ft]
 
 
@@ -78,10 +74,9 @@ st  = stehfest(Fs_time, t)
 ta  = talbot(Fs_time, t)
 dh  = dehoog(Fs_time, t)
 
-out = os.path.join(out_dir, "py_groundwater_theis_well_time.csv")
-np.savetxt(out, np.column_stack([t, ana, st, ta, dh]),
+np.savetxt("py_groundwater_theis_well_time.csv", np.column_stack([t, ana, st, ta, dh]),
            delimiter=",", header="t,analytical,stehfest,talbot,dehoog", comments="")
-print(out)
+print("py_groundwater_theis_well_time.csv")
 
 t_snap = 2.0  # snapshot time [days] (48 h)
 
@@ -98,7 +93,6 @@ for i, ri in enumerate(r_arr):
     ta_r[i] = talbot(Fs_r, t_snap)
     dh_r[i] = dehoog(Fs_r, t_snap)
 
-out2 = os.path.join(out_dir, "py_groundwater_theis_well_distance.csv")
-np.savetxt(out2, np.column_stack([r_arr, ana_r, st_r, ta_r, dh_r]),
+np.savetxt("py_groundwater_theis_well_distance.csv", np.column_stack([r_arr, ana_r, st_r, ta_r, dh_r]),
            delimiter=",", header="r,analytical,stehfest,talbot,dehoog", comments="")
-print(out2)
+print("py_groundwater_theis_well_distance.csv")

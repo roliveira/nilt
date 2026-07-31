@@ -28,7 +28,6 @@ Reference:
   Bear, J. (1979). Hydraulics of Groundwater, S8.3, McGraw-Hill.
 """
 
-import os
 import numpy as np
 from scipy.special import kv, exp1
 import nilt
@@ -67,13 +66,9 @@ ana = analytical_obs(t)
 ta  = talbot(Fs_obs, t)
 dh  = dehoog(Fs_obs, t)
 
-out_dir = os.path.join(os.path.dirname(__file__), "build")
-os.makedirs(out_dir, exist_ok=True)
-
-out = os.path.join(out_dir, "py_groundwater_well_dipole.csv")
-np.savetxt(out, np.column_stack([t, ana, ta, dh]),
+np.savetxt("py_groundwater_well_dipole.csv", np.column_stack([t, ana, ta, dh]),
            delimiter=",", header="t,analytical,talbot,dehoog", comments="")
-print(out)
+print("py_groundwater_well_dipole.csv")
 
 # 2D spatial drawdown at t=7200s
 t_snap = 7200.0
@@ -99,7 +94,6 @@ for j in range(ny):
         nilt_val = talbot(Fs_xy, t_snap)
         data.append([xx, yy, anal, nilt_val])
 
-out2 = os.path.join(out_dir, "py_groundwater_well_dipole_spatial.csv")
-np.savetxt(out2, np.array(data),
+np.savetxt("py_groundwater_well_dipole_spatial.csv", np.array(data),
            delimiter=",", header="x,y,analytical,talbot", comments="")
-print(out2)
+print("py_groundwater_well_dipole_spatial.csv")
