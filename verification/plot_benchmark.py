@@ -1,66 +1,73 @@
 #!/usr/bin/env python3
-"""Plot benchmark timing results."""
+"""Plot benchmark timing results (C++ and Python side by side).
 
-import pathlib
-import sys
+Reads:
+  {cpp,py}_benchmark_timing.csv   (algo-parameter sweep, scalar t)
+  {cpp,py}_benchmark_array.csv    (array-size sweep, default params)
 
-import polars as pl
+Emits:
+  benchmark_timing.png
+  benchmark_array.png             (only if the array CSVs exist)
+"""
+
+from pathlib import Path
+import numpy as np
 import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "examples" / "utils"))
-from plot_args import create_argument_parser
+DIR = Path(".")
+FMT = "png"
+DPI = 600
 
-TIMING_STYLES = {
-    ("Stehfest", "C++"):    {"color": "C0", "marker": "s", "ls": "-"},
-    ("Stehfest", "Python"): {"color": "C0", "marker": "s", "ls": "--"},
-    ("Talbot",   "C++"):    {"color": "C1", "marker": "^", "ls": "-"},
-    ("Talbot",   "Python"): {"color": "C1", "marker": "^", "ls": "--"},
-    ("DeHoog",   "C++"):    {"color": "C2", "marker": "o", "ls": "-"},
-    ("DeHoog",   "Python"): {"color": "C2", "marker": "o", "ls": "--"},
+STYLES = {
+    ("Stehfest", "cpp"): {"color": "C0", "marker": "s", "ls": "-"},
+    ("Stehfest", "py"):  {"color": "C0", "marker": "s", "ls": "--"},
+    ("Talbot",   "cpp"): {"color": "C1", "marker": "^", "ls": "-"},
+    ("Talbot",   "py"):  {"color": "C1", "marker": "^", "ls": "--"},
+    ("DeHoog",   "cpp"): {"color": "C2", "marker": "o", "ls": "-"},
+    ("DeHoog",   "py"):  {"color": "C2", "marker": "o", "ls": "--"},
 }
 
 
-def main() -> None:
-    args = create_argument_parser(__doc__, __file__).parse_args()
-
-    cpp_csv = args.dir / "benchmark_timing.csv"
-    py_csv  = args.dir / "benchmark_timing_python.csv"
-
-    if not cpp_csv.exists() and not py_csv.exists():
-        print("  No benchmark timing CSVs found, skipping")
+def plot_sweep(csv_glob, xcol, xlabel, title, outfile):
+    csvs = sorted(DIR.glob(csv_glob))
+    if not csvs:
         return
-
     fig, ax = plt.subplots(figsize=(8, 5), constrained_layout=True)
-
-    for csv_path, lang in [(cpp_csv, "C++"), (py_csv, "Python")]:
-        if not csv_path.exists():
-            continue
-
-        df = pl.read_csv(csv_path)
-
+    for csv in csvs:
+        prefix = csv.stem.split("_")[0]  # "cpp" or "py"
+        data = np.genfromtxt(csv, delimiter=",", dtype=None, names=True, encoding=None)
         for method in ["Stehfest", "Talbot", "DeHoog"]:
-            sub = df.filter(pl.col("method") == method)
-            if sub.is_empty():
+            mask = data["method"] == method
+            if not mask.any():
                 continue
-
-            style = TIMING_STYLES[(method, lang)]
+            style = STYLES[(method, prefix)]
             ax.loglog(
-                sub["param"], sub["time_us"],
+                data[xcol][mask], data["time_us"][mask],
                 marker=style["marker"], color=style["color"],
-                ls=style["ls"], label=f"{method} ({lang})",
+                ls=style["ls"], label=f"{method} ({prefix})",
             )
-
-    ax.set_xlabel("Algorithm parameter (N / n / M)")
+    ax.set_xlabel(xlabel)
     ax.set_ylabel(r"Time per inversion [$\mu$s]")
-    ax.set_title(r"Timing: $F(s) = 1/(s+1)$ at $t = 1$")
+    ax.set_title(title)
     ax.legend(ncol=2)
     ax.grid(True, alpha=0.3, which="both")
-
-    out = args.dir / f"benchmark_timing.{args.format}"
-    fig.savefig(out, dpi=600)
+    fig.savefig(outfile, dpi=DPI)
     plt.close(fig)
-    print(f"  {out}")
+    print(outfile)
 
 
-if __name__ == "__main__":
-    main()
+plot_sweep(
+    "*_benchmark_timing.csv",
+    xcol="param",
+    xlabel="Algorithm parameter (N or M)",
+    title=r"Scalar timing: $F(s) = 1/(s+1)$ at $t = 1$",
+    outfile=f"benchmark_timing.{FMT}",
+)
+
+plot_sweep(
+    "*_benchmark_array.csv",
+    xcol="nt",
+    xlabel="Array length (number of t-values)",
+    title=r"Array timing at default params: $F(s) = 1/(s+1)$",
+    outfile=f"benchmark_array.{FMT}",
+)

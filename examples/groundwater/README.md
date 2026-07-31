@@ -48,11 +48,13 @@ Injection well: $Q_i = 0.007$ m$^3$/s at ($+20$, $+8$) m.
 ## Running
 
 ```bash
-# from the examples/groundwater/build directory
+# from the build/ directory
 ./groundwater_theis_well
 ./groundwater_well_dipole
+python ../examples/groundwater/theis_well.py
+python ../examples/groundwater/well_dipole.py
 
-# plot results (reads/writes from build/ by default)
-python ../plot_theis_well.py
-python ../plot_well_dipole.py
+# plot (reads/writes in current directory)
+python ../examples/groundwater/plot_theis_well.py
+python ../examples/groundwater/plot_well_dipole.py
 ```

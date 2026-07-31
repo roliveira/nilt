@@ -1,86 +1,78 @@
 #!/usr/bin/env python3
-"""Plot cylinder diffusion results (time series and 2D cross-section)."""
+"""Plot cylinder diffusion results (time series and radial cross-section)."""
 
-import pathlib
-import sys
-
-import polars as pl
-import matplotlib.pyplot as plt
+from pathlib import Path
 import numpy as np
+import matplotlib.pyplot as plt
 
-sys.path.insert(0, str(pathlib.Path(__file__).resolve().parent.parent / "utils"))
-from plot_args import create_argument_parser
+DIR = Path(".")
+FMT = "png"
+DPI = 600
+MARKEVERY = 5
 
+METHODS = [
+    ("stehfest", "s", "C0"),
+    ("talbot",   "^", "C1"),
+    ("dehoog",   "o", "C2"),
+]
 
-def main() -> None:
-    args = create_argument_parser(__doc__, __file__).parse_args()
+# --- Time series ---
+for csv in sorted(DIR.glob("*_transport_cylinder_diffusion.csv")):
+    data = np.genfromtxt(csv, delimiter=",", names=True)
+    t   = data["t"]
+    ana = data["analytical"]
 
-    csv_path = args.dir / "transport_cylinder_diffusion.csv"
-    if csv_path.exists():
-        df = pl.read_csv(csv_path)
-        t = df["t"].to_numpy()
-        ana = df["analytical"].to_numpy()
+    fig, (ax, ax_err) = plt.subplots(
+        2, 1, figsize=(7, 5), gridspec_kw={"height_ratios": [3, 1]},
+        sharex=True, constrained_layout=True,
+    )
 
-        fig, (ax, ax_err) = plt.subplots(
-            2, 1, figsize=(7, 5), gridspec_kw={"height_ratios": [3, 1]},
-            sharex=True, constrained_layout=True,
-        )
+    ax.plot(t, ana, "k-", label="analytical", zorder=10)
+    for col, marker, color in METHODS:
+        ax.plot(t, data[col], marker, color=color, markevery=MARKEVERY, label=col.title())
 
-        ax.plot(t, ana, "k-", label="analytical", zorder=10)
-        ax.plot(t, df["stehfest"], "s", color="C0", markevery=5, label="Stehfest")
-        ax.plot(t, df["talbot"], "^", color="C1", markevery=5, label="Talbot")
-        ax.plot(t, df["dehoog"], "o", color="C2", markevery=5, label="De Hoog")
-        ax.set_ylabel("Average concentration [mol/m³]")
-        ax.set_title(r"$\bar{C}_{\mathrm{avg}} = \frac{C_0}{s}\,\frac{2}{q}\,\frac{I_1(q)}{I_0(q)}$")
-        ax.legend()
-        ax.grid(True, alpha=0.3)
+    ax.set_ylabel("Average concentration [mol/m³]")
+    ax.set_title(r"$\bar{C}_{\mathrm{avg}} = \frac{C_0}{s}\,\frac{2}{q}\,\frac{I_1(q)}{I_0(q)}$")
+    ax.legend()
+    ax.grid(True, alpha=0.3)
 
-        ana_abs = np.maximum(np.abs(ana), 1e-30)
-        for col, marker, color in [("stehfest", "s", "C0"), ("talbot", "^", "C1"), ("dehoog", "o", "C2")]:
-            rel_err = np.abs(df[col].to_numpy() - ana) / ana_abs
-            ax_err.semilogy(t, rel_err, marker=marker, color=color, markevery=5)
+    ana_abs = np.maximum(np.abs(ana), 1e-30)
+    for col, marker, color in METHODS:
+        ax_err.semilogy(t, np.abs(data[col] - ana) / ana_abs, marker, color=color, markevery=MARKEVERY)
 
-        ax_err.set_xlabel("Time [s]")
-        ax_err.set_ylabel("Relative error")
-        ax_err.grid(True, alpha=0.3, which="both")
+    ax_err.set_xlabel("Time [s]")
+    ax_err.set_ylabel("Relative error")
+    ax_err.grid(True, alpha=0.3, which="both")
 
-        out = csv_path.with_suffix(f".{args.format}")
-        fig.savefig(out, dpi=600)
-        plt.close(fig)
-        print(f"  {out}")
+    out = csv.with_suffix(f".{FMT}")
+    fig.savefig(out, dpi=DPI)
+    plt.close(fig)
+    print(out)
 
-    spatial = args.dir / "transport_cylinder_diffusion_spatial.csv"
-    if spatial.exists():
-        df = pl.read_csv(spatial)
-        r_data = df["r"].to_numpy()
-        C_data = df["talbot"].to_numpy()
+# --- Radial cross-section ---
+for csv in sorted(DIR.glob("*_transport_cylinder_diffusion_spatial.csv")):
+    data = np.genfromtxt(csv, delimiter=",", names=True)
+    r_data = data["r"]
+    C_data = data["talbot"]
 
-        a = r_data[-1]
-        pad = 1.5
-        n = 301
-        x = np.linspace(-a * pad, a * pad, n)
-        y = np.linspace(-a * pad, a * pad, n)
-        X, Y = np.meshgrid(x, y)
-        R = np.sqrt(X**2 + Y**2)
+    a = r_data[-1]
+    n = 301
+    x = np.linspace(-a * 1.5, a * 1.5, n)
+    X, Y = np.meshgrid(x, x)
+    R = np.sqrt(X**2 + Y**2)
+    Z = np.where(R <= a, np.interp(R.ravel(), r_data, C_data).reshape(n, n), 0.0)
 
-        Z = np.where(R <= a, np.interp(R.ravel(), r_data, C_data).reshape(n, n), 0.0)
+    fig, ax = plt.subplots(figsize=(6.5, 5.5), constrained_layout=True)
+    cf = ax.contourf(X * 1e3, Y * 1e3, Z, levels=30)
+    fig.colorbar(cf, ax=ax, label="Concentration [mol/m³]")
+    theta = np.linspace(0, 2 * np.pi, 200)
+    ax.plot(a * 1e3 * np.cos(theta), a * 1e3 * np.sin(theta), "w--")
+    ax.set_xlabel("x [mm]")
+    ax.set_ylabel("y [mm]")
+    ax.set_title(r"$C(r, t=500\,\mathrm{s})$")
+    ax.set_aspect("equal")
 
-        fig, ax = plt.subplots(figsize=(6.5, 5.5), constrained_layout=True)
-        cf = ax.contourf(X * 1e3, Y * 1e3, Z, levels=30)
-        cb = fig.colorbar(cf, ax=ax)
-        cb.set_label("Concentration [mol/m³]")
-        theta = np.linspace(0, 2 * np.pi, 200)
-        ax.plot(a * 1e3 * np.cos(theta), a * 1e3 * np.sin(theta), "w--")
-        ax.set_xlabel("x [mm]")
-        ax.set_ylabel("y [mm]")
-        ax.set_title(r"$C_{\mathrm{avg}} = \frac{2}{q}\,\frac{I_1(q)}{I_0(q)}$ at $t = 500$ s")
-        ax.set_aspect("equal")
-
-        out = spatial.with_name("transport_cylinder_diffusion_spatial").with_suffix(f".{args.format}")
-        fig.savefig(out, dpi=600)
-        plt.close(fig)
-        print(f"  {out}")
-
-
-if __name__ == "__main__":
-    main()
+    out = csv.with_suffix(f".{FMT}")
+    fig.savefig(out, dpi=DPI)
+    plt.close(fig)
+    print(out)

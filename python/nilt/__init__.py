@@ -1,31 +1,98 @@
 """nilt - Numerical Inverse Laplace Transform.
 
-Provides three algorithms for numerically inverting Laplace transforms:
+Three algorithms are available:
 
-  - ``Stehfest``  - real-valued F(s), Gaver–Stehfest method.
-  - ``Talbot``    - complex-valued F(s), fixed Talbot contour.
-  - ``DeHoog``    - complex-valued F(s), De Hoog et al. accelerated Fourier.
+  - ``Stehfest``  - real-valued F(s), very fast.  Best default.
+  - ``Talbot``    - complex-valued F(s), robust for oscillatory transforms.
+  - ``DeHoog``    - complex-valued F(s), most accurate for difficult transforms.
 
 Quick start::
 
-    import numpy as np
     import nilt
 
     # scalar
-    f_1 = nilt.invert(nilt.Talbot(), lambda s: 1/(s+1), 1.0)
+    f_1 = nilt.invert(lambda s: 1/(s+1), 1.0)
 
-    # array
-    t = np.linspace(0.1, 5.0, 100)
-    f_t = nilt.invert(nilt.Talbot(), lambda s: 1/(s+1), t)
+    # iterable (list, tuple, ndarray, ...)
+    f_t = nilt.invert(lambda s: 1/(s+1), [0.1, 0.5, 1.0, 2.0, 5.0])
+
+    # different method with custom parameters
+    f_t = nilt.invert(lambda s: 1/(s+1), 1.0, method="Talbot", N=64)
 """
 
-from nilt._nilt import Stehfest, Talbot, DeHoog, invert, pi
+import numbers
+import numpy as np
+
+from nilt._nilt import Stehfest, Talbot, DeHoog, pi
+
+
+_METHODS = {
+    "stehfest": Stehfest,
+    "talbot":   Talbot,
+    "dehoog":   DeHoog,
+}
+
+_METHOD_PARAMS = {
+    "stehfest": {"N"},
+    "talbot":   {"N", "SHIFT"},
+    "dehoog":   {"M", "T_FACTOR", "TOL"},
+}
+
+
+def invert(Fs, t, method="Stehfest", **kwargs):
+    """Invert the Laplace transform Fs at time(s) t.
+
+    Parameters
+    ----------
+    Fs : callable
+        Laplace-domain function.
+        For Stehfest: ``Fs(s: float) -> float``.
+        For Talbot/DeHoog: ``Fs(s: complex) -> complex``.
+    t : float, int, or iterable of floats
+        Evaluation time(s).  Must be positive.  Accepts scalars, lists,
+        tuples, numpy arrays, or any iterable that ``numpy.asarray`` can
+        convert to a 1-D float64 array.
+    method : str, optional
+        Algorithm name: ``"Stehfest"`` (default), ``"Talbot"``, or
+        ``"DeHoog"`` (case-insensitive).
+    **kwargs
+        Method-specific parameters.  Stehfest: ``N``.  Talbot: ``N``,
+        ``SHIFT``.  DeHoog: ``M``, ``T_FACTOR``, ``TOL``.
+
+    Returns
+    -------
+    float or numpy.ndarray
+        ``f(t)`` — a scalar if *t* was a scalar, otherwise an array.
+    """
+    key = method.lower()
+    if key not in _METHODS:
+        raise ValueError(
+            f"Unknown method '{method}'. "
+            f"Choose from: {', '.join(m.title() for m in _METHODS)}"
+        )
+
+    algo = _METHODS[key]()
+
+    valid = _METHOD_PARAMS[key]
+    for k, v in kwargs.items():
+        if k not in valid:
+            raise TypeError(
+                f"'{k}' is not a valid parameter for {method}. "
+                f"Valid parameters: {', '.join(sorted(valid))}"
+            )
+        setattr(algo, k, v)
+
+    if isinstance(t, numbers.Number):
+        return algo(Fs, float(t))
+
+    t_arr = np.ascontiguousarray(t, dtype=np.float64).ravel()
+    return algo(Fs, t_arr)
 
 
 __all__ = [
-    "Stehfest", 
-    "Talbot", 
-    "DeHoog", 
-    "invert", 
+    "Stehfest",
+    "Talbot",
+    "DeHoog",
+    "invert",
     "pi",
 ]

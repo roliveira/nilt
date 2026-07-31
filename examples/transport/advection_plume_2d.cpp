@@ -34,7 +34,8 @@
 #include <iostream>
 
 #include "nilt.hpp"
-#include "../utils/bessel.hpp"
+#include "util.hpp"
+#include "bessel.hpp"
 
 int main()
 {
@@ -48,12 +49,12 @@ int main()
 
     auto Fs_pt = [=](auto s) {
         auto kappa = std::sqrt(v * v / (4.0 * D * D) + s / D);
-        return M / (2.0 * nilt::pi * D) * std::exp(v * xp / (2.0 * D))
+        return M / (2.0 * nilt::util::PI * D) * std::exp(v * xp / (2.0 * D))
                * bessel::K0(rp * kappa);
     };
 
     auto analytical_pt = [=](double t) {
-        return M / (4.0 * nilt::pi * D * t)
+        return M / (4.0 * nilt::util::PI * D * t)
                * std::exp(-((xp - v * t) * (xp - v * t) + yp * yp) / (4.0 * D * t));
     };
 
@@ -62,7 +63,7 @@ int main()
     nilt::DeHoog   dehoog;
 
     {
-        std::ofstream ofs("transport_advection_plume_2d.csv");
+        std::ofstream ofs("cpp_transport_advection_plume_2d.csv");
         ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -75,7 +76,7 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_pt, t)
                 << std::endl;
         }
-        std::cout << "transport_advection_plume_2d.csv" << std::endl;
+        std::cout << "cpp_transport_advection_plume_2d.csv" << std::endl;
     }
 
     const double t_snap = 5.0;   // [s]
@@ -87,7 +88,7 @@ int main()
     const int    ny     = 80;
 
     {
-        std::ofstream ofs("transport_advection_plume_2d_spatial.csv");
+        std::ofstream ofs("cpp_transport_advection_plume_2d_spatial.csv");
         ofs << "x,y,analytical,talbot" << std::endl;
         ofs.precision(12);
 
@@ -99,7 +100,7 @@ int main()
                 double xx = x_lo + (x_hi - x_lo) * i / (nx - 1);
                 double rr = std::hypot(xx, yy);
 
-                double anal = M / (4.0 * nilt::pi * D * t_snap)
+                double anal = M / (4.0 * nilt::util::PI * D * t_snap)
                     * std::exp(-((xx - v * t_snap) * (xx - v * t_snap) + yy * yy)
                                / (4.0 * D * t_snap));
 
@@ -113,7 +114,7 @@ int main()
                 {
                     auto Fs_xy = [=](auto s) {
                         auto kappa = std::sqrt(v * v / (4.0 * D * D) + s / D);
-                        return M / (2.0 * nilt::pi * D) * std::exp(v * xx / (2.0 * D))
+                        return M / (2.0 * nilt::util::PI * D) * std::exp(v * xx / (2.0 * D))
                                * bessel::K0(rr * kappa);
                     };
                     nilt_val = nilt::invert(talbot, Fs_xy, t_snap);
@@ -122,7 +123,7 @@ int main()
                 ofs << xx << "," << yy << "," << anal << "," << nilt_val << std::endl;
             }
         }
-        std::cout << "transport_advection_plume_2d_spatial.csv" << std::endl;
+        std::cout << "cpp_transport_advection_plume_2d_spatial.csv" << std::endl;
     }
 
     return 0;

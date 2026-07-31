@@ -18,38 +18,58 @@ class TestStehfestDefaults:
 class TestStehfestDomainError:
 
     def test_raises_for_t_zero(self, Fs):
-        algo = nilt.Stehfest()
         with pytest.raises(ValueError):
-            nilt.invert(algo, Fs, 0.0)
+            nilt.invert(Fs, 0.0)
 
     def test_raises_for_t_negative(self, Fs):
-        algo = nilt.Stehfest()
         with pytest.raises(ValueError):
-            nilt.invert(algo, Fs, -1.0)
+            nilt.invert(Fs, -1.0)
+
+
+class TestStehfestInvalidArgument:
+    
+    def test_raises_for_N_odd(self, Fs):
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, N=5)
+
+    def test_raises_for_N_too_small(self, Fs):
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, N=0)
+
+    def test_raises_for_N_too_large(self, Fs):
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, N=22)
 
 
 class TestStehfestDirectCallMatchesFreeFunction:
 
     def test_direct_call_identical_to_invert(self, Fs):
         algo = nilt.Stehfest()
-        via_free = nilt.invert(algo, Fs, 3.0)
+        via_invert = nilt.invert(Fs, 3.0)
         via_call = algo(Fs, 3.0)
-        assert via_free == via_call
+        assert via_invert == via_call
 
 
-class TestStehfestArrayInput:
+class TestStehfestIterableInput:
 
     def test_array_returns_ndarray_of_matching_length(self, Fs):
-        algo = nilt.Stehfest()
-        t = np.array([1.0, 2.0, 3.0])
-        result = nilt.invert(algo, Fs, t)
+        result = nilt.invert(Fs, np.array([1.0, 2.0, 3.0]))
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
-    def test_array_elements_match_scalar_calls(self, TOL, Fs):
-        algo = nilt.Stehfest()
-        t_values = np.array([1.0, 2.0, 3.0, 4.0])
-        array_result = nilt.invert(algo, Fs, t_values)
+    def test_list_returns_ndarray(self, Fs):
+        result = nilt.invert(Fs, [1.0, 2.0, 3.0])
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 3
+
+    def test_tuple_returns_ndarray(self, Fs):
+        result = nilt.invert(Fs, (1.0, 2.0))
+        assert isinstance(result, np.ndarray)
+        assert len(result) == 2
+
+    def test_iterable_elements_match_scalar_calls(self, Fs):
+        t_values = [1.0, 2.0, 3.0, 4.0]
+        array_result = nilt.invert(Fs, t_values)
         for i, t in enumerate(t_values):
-            scalar_result = nilt.invert(algo, Fs, float(t))
-            assert array_result[i] == pytest.approx(scalar_result, rel=TOL["STEHFEST_REL_TOL_LARGE"])
+            scalar_result = nilt.invert(Fs, t)
+            assert array_result[i] == pytest.approx(scalar_result, rel=1e-12)

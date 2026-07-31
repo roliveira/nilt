@@ -35,7 +35,8 @@
 #include <iostream>
 
 #include "nilt.hpp"
-#include "../utils/bessel.hpp"
+#include "util.hpp"
+#include "bessel.hpp"
 
 // Exponential integral E1(u) for real positive u.
 // Uses the series for small u and the continued-fraction for large u.
@@ -103,12 +104,12 @@ int main()
     const double r_obs = 100.0;  // observation distance [ft]
 
     auto Fs_time = [=](auto s) {
-        return Q / (2.0 * nilt::pi * T * s)
+        return Q / (2.0 * nilt::util::PI * T * s)
                * bessel::K0(r_obs * std::sqrt(s * S / T));
     };
 
     {
-        std::ofstream ofs("groundwater_theis_well_time.csv");
+        std::ofstream ofs("cpp_groundwater_theis_well_time.csv");
         ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -121,20 +122,20 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_time, t)
                 << std::endl;
         }
-        std::cout << "groundwater_theis_well_time.csv" << std::endl;
+        std::cout << "cpp_groundwater_theis_well_time.csv" << std::endl;
     }
 
     const double t_snap = 2.0;  // snapshot time [days] (48 h)
 
     {
-        std::ofstream ofs("groundwater_theis_well_distance.csv");
+        std::ofstream ofs("cpp_groundwater_theis_well_distance.csv");
         ofs << "r,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
         for (double r = 1.0; r <= 1000.0; r += 3.0)
         {
             auto Fs_r = [=](auto s) {
-                return Q / (2.0 * nilt::pi * T * s)
+                return Q / (2.0 * nilt::util::PI * T * s)
                        * bessel::K0(r * std::sqrt(s * S / T));
             };
             ofs << r
@@ -144,7 +145,7 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_r, t_snap)
                 << std::endl;
         }
-        std::cout << "groundwater_theis_well_distance.csv" << std::endl;
+        std::cout << "cpp_groundwater_theis_well_distance.csv" << std::endl;
     }
 
     return 0;

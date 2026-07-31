@@ -29,6 +29,7 @@
 #include <iostream>
 
 #include "nilt.hpp"
+#include "util.hpp"
 
 int main()
 {
@@ -49,16 +50,16 @@ int main()
         for (int n = 1; n <= 500; ++n)
         {
             double n2 = static_cast<double>(n * n);
-            sum += std::exp(-D * n2 * nilt::pi * nilt::pi * t / (a * a)) / n2;
+            sum += std::exp(-D * n2 * nilt::util::PI * nilt::util::PI * t / (a * a)) / n2;
         }
-        return C0 * 6.0 / (nilt::pi * nilt::pi) * sum;
+        return C0 * 6.0 / (nilt::util::PI * nilt::util::PI) * sum;
     };
 
     nilt::Stehfest stehfest;
     nilt::Talbot   talbot;
     nilt::DeHoog   dehoog;
 
-    std::ofstream ofs("transport_sphere_diffusion.csv");
+    std::ofstream ofs("cpp_transport_sphere_diffusion.csv");
     ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
     ofs.precision(16);
 
@@ -72,6 +73,6 @@ int main()
             << std::endl;
     }
 
-    std::cout << "transport_sphere_diffusion.csv" << std::endl;
+    std::cout << "cpp_transport_sphere_diffusion.csv" << std::endl;
     return 0;
 }

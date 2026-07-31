@@ -35,6 +35,10 @@ double f = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 
 nilt::DeHoog dh;
 double f = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
 
+// Vector of times (algorithm is constructed once, reused for all t)
+std::vector<double> t = {0.1, 0.5, 1.0, 2.0, 5.0};
+auto results = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, t);
+
 // Custom parameters (see Parameters section for full list)
 nilt::Stehfest algo;
 algo.N = 12;
@@ -44,25 +48,61 @@ double f = nilt::invert(algo, my_func, 1.0);
 **Python**
 
 ```python
-import numpy as np
-from nilt import Stehfest, Talbot, DeHoog, invert
+import nilt
 
-# "Free" function - works with any callable
-f = invert(Talbot(), lambda s: 1.0 / (s + 1.0), 1.0)
-
-# Direct algorithm call (equivalent)
-dh = DeHoog()
-f = dh(lambda s: 1.0 / (s + 1.0), 2.5)
-
-# Custom parameters (see Parameters section for full list)
-algo = Stehfest()
-algo.N = 12
-f = invert(algo, my_func, 1.0)
+# Scalar evaluation (Stehfest is the default method)
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0)
 
 # Array of times (returns numpy array)
-t = np.linspace(0.1, 10, 100)
-results = invert(DeHoog(), lambda s: 1.0 / (s + 1.0), t)
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), [0.1, 0.5, 1.0, 2.0, 5.0])
+
+# Pick a different method, pass parameters as keyword arguments
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0, method="Talbot", N=64)
+
+# Class instances are callable directly (useful when reusing an algorithm)
+algo = nilt.DeHoog()
+algo.M = 60
+f = algo(lambda s: 1.0 / (s + 1.0), 2.5)
 ```
+
+### Fast whole-array inversion
+
+For inverting at many `t`-values, prefer passing the whole array in one call.
+The Python bindings dispatch to a batched C++ path that invokes your
+`Fs` callback exactly once with a numpy array of all `s`-values needed
+across the whole `t`-array - one Python round-trip regardless of `len(t)`.
+Speedup vs. a scalar-per-t loop reaches ~60× for Stehfest and grows with
+array size for Talbot / DeHoog.
+
+```python
+import numpy as np, nilt
+
+# Vectorized F: numpy handles the whole s-array once
+def Fs(s):
+    return 1.0 / (s + 1.0)
+
+t = np.linspace(0.1, 5.0, 10_000)
+f = nilt.Talbot()(Fs, t)          # single Python -> Fs call, ndarray out
+```
+
+For direct access to the batch interface in C++ (e.g. when `F(s)` itself
+is expensive and can amortize a vectorized evaluation), each class exposes
+an `eval_batched` overload:
+
+```cpp
+nilt::Stehfest algo;
+std::vector<double> t   = {0.5, 1.0, 2.0, 4.0};
+std::vector<double> out(t.size());
+
+algo.eval_batched(
+    /* Fs_batched: */ [](const double* s, double* fv, int n) {
+        for (int i = 0; i < n; ++i) fv[i] = 1.0 / (s[i] + 1.0);
+    },
+    t.data(), out.data(), (int)t.size());   // one call, all t
+```
+
+The pure-C++ `nilt::invert(algo, F, t_vec)` remains a fast scalar
+loop and is recommended when `F(s)` is cheap.
 
 
 ## Methods
@@ -77,10 +117,14 @@ Three algorithms are implemented:
 
 All algorithms accept any callable via the free function or direct call:
 
-|               | C++                        | Python                    |
-|---------------|----------------------------|---------------------------|
-| Free function | `nilt::invert(algo, F, t)` | `nilt.invert(algo, F, t)` |
-| Direct call   | `algo(F, t)`               | `algo(F, t)`              |
+|               | C++                        | Python                                  |
+|---------------|----------------------------|------------------------------------------|
+| Free function | `nilt::invert(algo, F, t)` | `nilt.invert(F, t, method=..., **kwargs)` |
+| Direct call   | `algo(F, t)`               | `algo(F, t)`                             |
+
+The Python free function selects the algorithm by name (case-insensitive) and
+forwards keyword arguments as parameters. The C++ free function takes an
+algorithm instance directly.
 
 
 ### Parameters
@@ -184,9 +228,9 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-Once installed, `from nilt import ...` works as expected. The `invert` function
-accepts both scalar `float` and NumPy array arguments. 
-Using NumPy arrays is slightly more efficient than having to evaluate several individual floats at a time. 
+Once installed, `import nilt` works as expected. The `invert` function
+accepts scalars, lists, tuples, and NumPy arrays as time arguments.
+Passing an array is more efficient than calling `invert` in a loop.
 
 
 ### Python tests (pytest)
@@ -203,13 +247,12 @@ uv run pytest                  # or simply pytest (with venv activated)
 cmake -B build -DNILT_BUILD_VERIFICATION=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build
 cd build
-./verification                              # writes CSVs to cwd
-python ../verification/plot_verification.py  # reads from build/, writes PNGs there
-python ../verification/plot_benchmark.py
+./verification
+./benchmark_timing
 
-# Python (from repo root, with .venv activated)
-python verification/verification.py          # writes CSVs to build/
-python verification/benchmark_timing.py
+# Python (from build/ directory)
+python ../verification/verification.py
+python ../verification/benchmark_timing.py
 ```
 
 
@@ -227,9 +270,16 @@ all three inversion methods against the known analytical solution:
 | `examples/groundwater/` | `well_dipole`        | Pumping + injection well dipole                           | 2D (x, y)            |
 
 Each subdirectory contains a `README.md` with the mathematical formulation and
-a `plot_<example>.py` script to visualize the results. Every C++ example has a matching
-Python script (`.py`) that produces identical results. Binaries are placed in a `build/`
-subdirectory next to their sources; the output CSVs and PNGs are also there.
+a `plot_<example>.py` script to visualize the results. Every C++ example has a
+matching Python script that produces identical output. All scripts write to the
+current working directory, so run them from `build/`:
+
+```bash
+cd build
+./groundwater_theis_well                           # C++ -> cpp_*.csv
+python ../examples/groundwater/theis_well.py       # Python -> py_*.csv
+python ../examples/groundwater/plot_theis_well.py  # reads *_.csv, writes *.png
+```
 
 
 ## Contributing

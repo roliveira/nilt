@@ -1,8 +1,9 @@
 /*
  * pybind11 bindings for the nilt (Numerical Inverse Laplace Transform) library.
  *
- * Exposes three algorithm classes (Stehfest, Talbot, DeHoog) and a free
- * function `invert(algo, F, t)` that accepts scalar or array t values.
+ * Exposes three algorithm classes (Stehfest, Talbot, DeHoog) with scalar
+ * and array __call__ overloads.  The high-level invert() API lives in
+ * Python (nilt/__init__.py) and delegates to these classes.
  *
  * Stehfest: F(s) takes a real float and returns a real float.
  * Talbot/DeHoog: F(s) takes a complex and returns a complex.
@@ -11,175 +12,133 @@
 #include <pybind11/numpy.h>
 #include <pybind11/complex.h>
 #include <pybind11/functional.h>
+#include <cstring>
 
 #include "nilt.hpp"
+#include "util.hpp"
+
 
 namespace py = pybind11;
 
-// Scalar inversion helpers
-static double invert_stehfest(const nilt::Stehfest& algo,
-                              py::function Fs, double t)
+// --- Batched forwarders ------------------------------------------------------
+// Each algo exposes two `eval_batched` overloads: per-t (single s-array) and
+// per-array (all s-values across all t in one shot).  Both are forwarded via
+// a lambda that (1) copies the s-array into a numpy array, (2) calls Python
+// Fs once, (3) copies the result back.  Result: one Python round-trip per
+// scalar call and one round-trip per whole-array call.
+
+template<typename S>
+struct NumpyBatched
 {
-    return algo([&](double s) { return Fs(s).cast<double>(); }, t);
-}
-
-static double invert_talbot(const nilt::Talbot& algo,
-                            py::function Fs, double t)
-{
-    return algo([&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    }, t);
-}
-
-static double invert_dehoog(const nilt::DeHoog& algo,
-                            py::function Fs, double t)
-{
-    return algo([&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    }, t);
-}
-
-// Vectorised inversion helpers (accept numpy arrays)
-static py::array_t<double> invert_stehfest_array(
-    const nilt::Stehfest& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](double s) { return Fs(s).cast<double>(); };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
-
-static py::array_t<double> invert_talbot_array(
-    const nilt::Talbot& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
-
-static py::array_t<double> invert_dehoog_array(
-    const nilt::DeHoog& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
-
-// Dispatch: picks the right scalar or array overload for any algorithm
-static py::object invert_dispatch(py::object algo, py::function Fs, py::object t)
-{
-    // Determine algorithm type
-    bool is_stehfest = py::isinstance<nilt::Stehfest>(algo);
-    bool is_talbot   = py::isinstance<nilt::Talbot>(algo);
-    bool is_dehoog   = py::isinstance<nilt::DeHoog>(algo);
-
-    if (!is_stehfest && !is_talbot && !is_dehoog)
-        throw std::invalid_argument("algo must be Stehfest, Talbot, or DeHoog");
-
-    // Check if t is an ndarray
-    if (py::isinstance<py::array>(t))
+    py::function Fs;
+    void operator()(const S* s, S* out, int n) const
     {
-        auto t_arr = t.cast<py::array_t<double>>();
-        if (is_stehfest)
-            return py::object(invert_stehfest_array(algo.cast<nilt::Stehfest>(), Fs, t_arr));
-        else if (is_talbot)
-            return py::object(invert_talbot_array(algo.cast<nilt::Talbot>(), Fs, t_arr));
-        else
-            return py::object(invert_dehoog_array(algo.cast<nilt::DeHoog>(), Fs, t_arr));
+        const size_t nz = static_cast<size_t>(n);
+        py::array_t<S> s_arr(n);
+        std::memcpy(s_arr.mutable_data(), s, nz * sizeof(S));
+        // Force a C-contiguous cast so `.data()` matches logical element order
+        // even if Fs returns a strided/mis-typed array.
+        auto f_arr = Fs(s_arr).template cast<
+            py::array_t<S, py::array::c_style | py::array::forcecast>>();
+        if (static_cast<size_t>(f_arr.size()) != nz)
+            throw py::value_error(
+                "Fs must return an array of the same length as its input");
+        std::memcpy(out, f_arr.data(), nz * sizeof(S));
     }
-    else
-    {
-        double t_val = t.cast<double>();
-        if (is_stehfest)
-            return py::cast(invert_stehfest(algo.cast<nilt::Stehfest>(), Fs, t_val));
-        else if (is_talbot)
-            return py::cast(invert_talbot(algo.cast<nilt::Talbot>(), Fs, t_val));
-        else
-            return py::cast(invert_dehoog(algo.cast<nilt::DeHoog>(), Fs, t_val));
-    }
+};
+
+template<typename Algo, typename S>
+static double scalar_call(const Algo& algo, py::function Fs, double t)
+{
+    return algo.eval_batched(NumpyBatched<S>{Fs}, t);
 }
 
-// Module definition
+template<typename Algo, typename S>
+static py::array_t<double> array_call(
+    const Algo& algo, py::function Fs,
+    py::array_t<double, py::array::c_style | py::array::forcecast> t_arr)
+{
+    py::array_t<double> out(t_arr.shape(0));
+    algo.eval_batched(
+        NumpyBatched<S>{Fs},
+        t_arr.data(), out.mutable_data(), static_cast<int>(t_arr.shape(0)));
+    return out;
+}
+
+// --- Stehfest ---------------------------------------------------------------
+
+static double stehfest_scalar(const nilt::Stehfest& a, py::function Fs, double t)
+    { return scalar_call<nilt::Stehfest, double>(a, Fs, t); }
+
+static py::array_t<double> stehfest_array(
+    const nilt::Stehfest& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::Stehfest, double>(a, Fs, t); }
+
+// --- Talbot -----------------------------------------------------------------
+
+static double talbot_scalar(const nilt::Talbot& a, py::function Fs, double t)
+    { return scalar_call<nilt::Talbot, std::complex<double>>(a, Fs, t); }
+
+static py::array_t<double> talbot_array(
+    const nilt::Talbot& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::Talbot, std::complex<double>>(a, Fs, t); }
+
+// --- DeHoog -----------------------------------------------------------------
+
+static double dehoog_scalar(const nilt::DeHoog& a, py::function Fs, double t)
+    { return scalar_call<nilt::DeHoog, std::complex<double>>(a, Fs, t); }
+
+static py::array_t<double> dehoog_array(
+    const nilt::DeHoog& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::DeHoog, std::complex<double>>(a, Fs, t); }
+
+// --- Module definition ------------------------------------------------------
+
 PYBIND11_MODULE(_nilt, m)
 {
     m.doc() = "nilt - Numerical Inverse Laplace Transform (C++ accelerated)";
 
     py::class_<nilt::Stehfest>(m, "Stehfest",
-        "Gaver-Stehfest algorithm for numerical inverse Laplace transform.\n"
-        "F(s) must accept a real float and return a real float.")
+        "Gaver-Stehfest algorithm (real-valued F(s)).")
         .def(py::init<>())
         .def_readwrite("N", &nilt::Stehfest::N,
-            "Number of terms (must be even, default 18)")
-        .def("__call__", &invert_stehfest,
+            "Number of terms (must be even, 2-20, default 18)")
+        .def("__call__", &stehfest_scalar,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at scalar time t")
-        .def("__call__", &invert_stehfest_array,
+        .def("__call__", &stehfest_array,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at array of times t");
 
     py::class_<nilt::Talbot>(m, "Talbot",
-        "Fixed Talbot algorithm for numerical inverse Laplace transform.\n"
-        "F(s) must accept a complex and return a complex.")
+        "Fixed Talbot algorithm (complex-valued F(s)).")
         .def(py::init<>())
         .def_readwrite("N", &nilt::Talbot::N,
-            "Number of quadrature points (default 50)")
+            "Number of quadrature points (default 50, table-accelerated 8-64)")
         .def_readwrite("SHIFT", &nilt::Talbot::SHIFT,
-            "Contour shift parameter (default 0.0)")
-        .def("__call__", &invert_talbot,
+            "Real-axis contour shift (default 0.0)")
+        .def("__call__", &talbot_scalar,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at scalar time t")
-        .def("__call__", &invert_talbot_array,
+        .def("__call__", &talbot_array,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at array of times t");
 
     py::class_<nilt::DeHoog>(m, "DeHoog",
-        "De Hoog et al. algorithm for numerical inverse Laplace transform.\n"
-        "F(s) must accept a complex and return a complex.")
+        "De Hoog et al. algorithm (complex-valued F(s)).")
         .def(py::init<>())
         .def_readwrite("M", &nilt::DeHoog::M,
             "Order of approximation (default 40)")
         .def_readwrite("T_FACTOR", &nilt::DeHoog::T_FACTOR,
-            "Period factor (default 4.0)")
+            "Period factor T = T_FACTOR * t (default 4.0)")
         .def_readwrite("TOL", &nilt::DeHoog::TOL,
-            "Tolerance (default 1e-16)")
-        .def("__call__", &invert_dehoog,
+            "Contour damping tolerance (default 1e-16)")
+        .def("__call__", &dehoog_scalar,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at scalar time t")
-        .def("__call__", &invert_dehoog_array,
+        .def("__call__", &dehoog_array,
             py::arg("Fs"), py::arg("t"),
             "Invert F(s) at array of times t");
 
-    m.def("invert", &invert_dispatch,
-        py::arg("algo"), py::arg("Fs"), py::arg("t"),
-        "Invert the Laplace transform F(s) at time(s) t.\n\n"
-        "Parameters\n"
-        "----------\n"
-        "algo : Stehfest, Talbot, or DeHoog\n"
-        "    Algorithm instance (parameters can be tuned before calling).\n"
-        "Fs : callable\n"
-        "    Laplace-domain function. For Stehfest: Fs(s: float) -> float.\n"
-        "    For Talbot/DeHoog: Fs(s: complex) -> complex.\n"
-        "t : float or numpy.ndarray\n"
-        "    Time(s) at which to evaluate the inverse. Must be positive.\n\n"
-        "Returns\n"
-        "-------\n"
-        "float or numpy.ndarray\n"
-        "    The inverse Laplace transform f(t).");
-
-    m.attr("pi") = nilt::pi;
+    m.attr("pi") = nilt::util::PI;
 }

@@ -28,7 +28,6 @@ Reference:
   American Elsevier.
 """
 
-import os
 import numpy as np
 from scipy.special import kv
 import nilt
@@ -57,16 +56,12 @@ dehoog = nilt.DeHoog()
 
 t = np.geomspace(0.5, 30.0, 80)
 ana = analytical_pt(t)
-ta  = nilt.invert(talbot, Fs_pt, t)
-dh  = nilt.invert(dehoog, Fs_pt, t)
+ta  = talbot(Fs_pt, t)
+dh  = dehoog(Fs_pt, t)
 
-out_dir = os.path.join(os.path.dirname(__file__), "build")
-os.makedirs(out_dir, exist_ok=True)
-
-out = os.path.join(out_dir, "py_transport_advection_plume_2d.csv")
-np.savetxt(out, np.column_stack([t, ana, ta, dh]),
+np.savetxt("py_transport_advection_plume_2d.csv", np.column_stack([t, ana, ta, dh]),
            delimiter=",", header="t,analytical,talbot,dehoog", comments="")
-print(out)
+print("py_transport_advection_plume_2d.csv")
 
 # 2D spatial field at t=5s
 t_snap = 5.0
@@ -88,10 +83,9 @@ for j in range(ny):
             def Fs_xy(s, _xx=xx, _rr=rr):
                 kappa = np.sqrt(v**2 / (4 * D**2) + s / D)
                 return M / (2 * np.pi * D) * np.exp(v * _xx / (2 * D)) * K0(_rr * kappa)
-            nilt_val = nilt.invert(talbot, Fs_xy, t_snap)
+            nilt_val = talbot(Fs_xy, t_snap)
         data.append([xx, yy, anal, nilt_val])
 
-out2 = os.path.join(out_dir, "py_transport_advection_plume_2d_spatial.csv")
-np.savetxt(out2, np.array(data),
+np.savetxt("py_transport_advection_plume_2d_spatial.csv", np.array(data),
            delimiter=",", header="x,y,analytical,talbot", comments="")
-print(out2)
+print("py_transport_advection_plume_2d_spatial.csv")

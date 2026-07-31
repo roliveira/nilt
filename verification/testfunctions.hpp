@@ -5,12 +5,13 @@
 #include <cmath>
 
 #include "nilt.hpp"
+#include "util.hpp"
 
 
 // Stehfest (1970) test functions
 
 // f1: f(t) = 1/sqrt(pi*t),        F(s) = 1/sqrt(s)
-template<typename T> T ft1(T t) { return 1.0/std::sqrt(nilt::pi*t); }
+template<typename T> T ft1(T t) { return 1.0/std::sqrt(nilt::util::PI*t); }
 template<typename T> T Fs1(T s) { return 1.0/std::sqrt(s); }
 
 // f2: f(t) = -gamma - ln(t),       F(s) = ln(s)/s
@@ -27,7 +28,7 @@ template<typename T> T Fs4(T s) { return 1.0/(s+1.0); }
 
 // f5: f(t) = sin(sqrt(2t)),        F(s) = sqrt(pi/(2s^3)) * exp(-1/(2s))
 template<typename T> T ft5(T t) { return std::sin(std::sqrt(2.0*t)); }
-template<typename T> T Fs5(T s) { return std::sqrt(nilt::pi/2.0) * std::pow(s, -1.5) * std::exp(-1.0/(2.0*s)); }
+template<typename T> T Fs5(T s) { return std::sqrt(nilt::util::PI/2.0) * std::pow(s, -1.5) * std::exp(-1.0/(2.0*s)); }
 
 // Abate & Whitt (2006) test functions
 

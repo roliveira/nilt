@@ -36,7 +36,7 @@ if(NILT_BUILD_TESTS)
     enable_testing()
 
     include(FetchContent)
-    
+
     FetchContent_Declare(
         Catch2
         GIT_REPOSITORY https://github.com/catchorg/Catch2.git
@@ -46,44 +46,31 @@ if(NILT_BUILD_TESTS)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
     include(Catch)
 
-    FetchContent_Declare(
-        nlohmann_json
-        GIT_REPOSITORY https://github.com/nlohmann/json.git
-        GIT_TAG        v3.11.3
-    )
-    FetchContent_MakeAvailable(nlohmann_json)
-
     add_executable(nilt_tests
         tests/test_stehfest.cpp
         tests/test_talbot.cpp
         tests/test_dehoog.cpp
-        tests/test_verification.cpp
     )
     target_link_libraries(
         nilt_tests PRIVATE nilt nilt_warnings
         Catch2::Catch2WithMain
-        nlohmann_json::nlohmann_json
     )
     target_include_directories(nilt_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/verification)
     target_include_directories(nilt_tests PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/tests)
     target_include_directories(nilt_tests SYSTEM PRIVATE ${catch2_SOURCE_DIR}/src)
 
     catch_discover_tests(nilt_tests)
-
-    configure_file(
-        "${CMAKE_CURRENT_SOURCE_DIR}/tests/tolerances.json"
-        "${CMAKE_CURRENT_BINARY_DIR}/tolerances.json"
-        COPYONLY
-    )
 endif()
 
 # verification
 if(NILT_BUILD_VERIFICATION)
     add_executable(verification          verification/verification.cpp)
     add_executable(benchmark_timing      verification/benchmark_timing.cpp)
+    add_executable(benchmark_array       verification/benchmark_array.cpp)
 
     target_link_libraries(verification          PRIVATE nilt nilt_warnings)
     target_link_libraries(benchmark_timing      PRIVATE nilt nilt_warnings)
+    target_link_libraries(benchmark_array       PRIVATE nilt nilt_warnings)
 
     target_include_directories(verification PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/verification"
