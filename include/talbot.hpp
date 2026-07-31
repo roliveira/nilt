@@ -59,13 +59,15 @@ constexpr TalbotContourTable generate_talbot_table() {
             double ct = nilt::util::constexpr_cos(arg);
             double st = nilt::util::constexpr_sin(arg);
 
-            // Guard: sin(arg) should never be exactly zero with the half-step
-            // offset grid, but constexpr evaluation may round to zero.
+            // For odd N, k = (N-1)/2 lands on theta = 0, giving sin(0) = 0.
+            // The contour has a removable singularity there; the limiting
+            // values are gamma = (0.5017/0.6407 - 0.6122, 0) and
+            // dgamma = (0, 0.2645).
             if (st == 0.0) {
-                table.data[row_offset + k].gamma_re  = 0.0;
+                table.data[row_offset + k].gamma_re  = 0.5017 / 0.6407 - 0.6122;
                 table.data[row_offset + k].gamma_im  = 0.0;
                 table.data[row_offset + k].dgamma_re = 0.0;
-                table.data[row_offset + k].dgamma_im = 0.0;
+                table.data[row_offset + k].dgamma_im = 0.2645;
                 continue;
             }
 
@@ -132,12 +134,22 @@ public:
                 double ct = std::cos(0.6407 * theta);
                 double st = std::sin(0.6407 * theta);
 
-                std::complex<double> z = SHIFT + scale
-                    * (0.5017 * theta * ct / st + std::complex<double>(-0.6122, 0.2645 * theta));
+                std::complex<double> z, dz;
 
-                std::complex<double> dz = scale
-                    * (-0.5017 * 0.6407 * theta / (st * st) + 0.5017 * ct / st
-                       + std::complex<double>(0.0, 0.2645));
+                if (st == 0.0) {
+                    // Removable singularity at theta = 0 (odd N).
+                    // Limiting values: gamma = (0.5017/0.6407 - 0.6122, 0),
+                    //                  dgamma = (0, 0.2645).
+                    z  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
+                    dz = scale * std::complex<double>(0.0, 0.2645);
+                } else {
+                    z = SHIFT + scale
+                        * (0.5017 * theta * ct / st + std::complex<double>(-0.6122, 0.2645 * theta));
+
+                    dz = scale
+                        * (-0.5017 * 0.6407 * theta / (st * st) + 0.5017 * ct / st
+                           + std::complex<double>(0.0, 0.2645));
+                }
 
                 ans += std::exp(z * t) * Fs(z) * dz;
             }
