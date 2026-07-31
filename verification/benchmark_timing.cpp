@@ -5,7 +5,7 @@
  * Uses func4: F(s) = 1/(s+1), f(t) = exp(-t) as the test function (cheap to
  * evaluate so the timings reflect the algorithm cost, not the user function).
  *
- * Output: benchmark_timing.csv with columns
+ * Output: cpp_benchmark_timing.csv with columns
  *   method, param, time_us  (microseconds per single inversion at t=1)
  */
 #include <chrono>
@@ -47,7 +47,7 @@ double time_inversion(Algo& algo, Fs&& F)
 
 int main()
 {
-    std::ofstream ofs("benchmark_timing.csv");
+    std::ofstream ofs("cpp_benchmark_timing.csv");
     ofs << "method,param,time_us" << std::endl;
     ofs.precision(6);
 

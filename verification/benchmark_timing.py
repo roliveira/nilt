@@ -4,7 +4,7 @@ tuning parameter is varied for each algorithm.
 Uses func4: F(s) = 1/(s+1), f(t) = exp(-t) as the test function (cheap to
 evaluate so the timings reflect the algorithm cost, not the user function).
 
-Output: benchmark_timing_python.csv with columns
+Output: py_benchmark_timing.csv with columns
   method, param, time_us  (microseconds per single inversion at t=1)
 """
 
@@ -39,7 +39,7 @@ def time_inversion(algo, Fs):
     return (t1 - t0) / REPEATS * 1e6  # seconds -> microseconds
 
 
-out = "benchmark_timing_python.csv"
+out = "py_benchmark_timing.csv"
 
 with open(out, "w") as f:
     f.write("method,param,time_us\n")
