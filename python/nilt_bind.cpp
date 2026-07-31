@@ -33,10 +33,17 @@ struct NumpyBatched
     py::function Fs;
     void operator()(const S* s, S* out, int n) const
     {
+        const size_t nz = static_cast<size_t>(n);
         py::array_t<S> s_arr(n);
-        std::memcpy(s_arr.mutable_data(), s, n * sizeof(S));
-        auto f_arr = Fs(s_arr).template cast<py::array_t<S>>();
-        std::memcpy(out, f_arr.data(), n * sizeof(S));
+        std::memcpy(s_arr.mutable_data(), s, nz * sizeof(S));
+        // Force a C-contiguous cast so `.data()` matches logical element order
+        // even if Fs returns a strided/mis-typed array.
+        auto f_arr = Fs(s_arr).template cast<
+            py::array_t<S, py::array::c_style | py::array::forcecast>>();
+        if (static_cast<size_t>(f_arr.size()) != nz)
+            throw py::value_error(
+                "Fs must return an array of the same length as its input");
+        std::memcpy(out, f_arr.data(), nz * sizeof(S));
     }
 };
 
@@ -48,7 +55,8 @@ static double scalar_call(const Algo& algo, py::function Fs, double t)
 
 template<typename Algo, typename S>
 static py::array_t<double> array_call(
-    const Algo& algo, py::function Fs, py::array_t<double> t_arr)
+    const Algo& algo, py::function Fs,
+    py::array_t<double, py::array::c_style | py::array::forcecast> t_arr)
 {
     py::array_t<double> out(t_arr.shape(0));
     algo.eval_batched(

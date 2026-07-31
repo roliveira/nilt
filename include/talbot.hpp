@@ -59,11 +59,13 @@ constexpr TalbotContourTable generate_talbot_table() {
             double ct = nilt::util::constexpr_cos(arg);
             double st = nilt::util::constexpr_sin(arg);
 
-            // For odd N, k = (N-1)/2 lands on theta = 0, giving sin(0) = 0.
-            // The contour has a removable singularity there; the limiting
-            // values are gamma = (0.5017/0.6407 - 0.6122, 0) and
-            // dgamma = (0, 0.2645).
-            if (st == 0.0) {
+            // For odd N, k = (N-1)/2 (== N/2 in integer division) lands on
+            // theta = 0, giving sin(0) = 0.  The contour has a removable
+            // singularity there; the limiting values are
+            // gamma = (0.5017/0.6407 - 0.6122, 0) and dgamma = (0, 0.2645).
+            // Detect by index rather than `st == 0.0` to avoid relying on
+            // exact floating-point cancellation.
+            if ((N % 2 == 1) && (k == N / 2)) {
                 table.data[row_offset + k].gamma_re  = 0.5017 / 0.6407 - 0.6122;
                 table.data[row_offset + k].gamma_im  = 0.0;
                 table.data[row_offset + k].dgamma_re = 0.0;
@@ -136,8 +138,8 @@ public:
 
                 std::complex<double> z, dz;
 
-                if (st == 0.0) {
-                    // Removable singularity at theta = 0 (odd N).
+                if ((N % 2 == 1) && (k == N / 2)) {
+                    // Removable singularity at theta = 0 (odd N, midpoint k).
                     // Limiting values: gamma = (0.5017/0.6407 - 0.6122, 0),
                     //                  dgamma = (0, 0.2645).
                     z  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
@@ -192,8 +194,8 @@ public:
                 double ct = std::cos(0.6407 * theta);
                 double st = std::sin(0.6407 * theta);
 
-                if (st == 0.0) {
-                    // Removable singularity at theta = 0 (odd N).
+                if ((N % 2 == 1) && (k == N / 2)) {
+                    // Removable singularity at theta = 0 (odd N, midpoint k).
                     z_vals[k]  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
                     dz_vals[k] = scale * std::complex<double>(0.0, 0.2645);
                 } else {
@@ -255,7 +257,8 @@ public:
                     double st = std::sin(0.6407 * theta);
 
                     std::complex<double> z, dz;
-                    if (st == 0.0) {
+                    if ((N % 2 == 1) && (k == N / 2)) {
+                        // Removable singularity at theta = 0 (odd N, midpoint).
                         z  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
                         dz = scale * std::complex<double>(0.0, 0.2645);
                     } else {

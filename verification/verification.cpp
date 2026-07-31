@@ -12,6 +12,7 @@
  *   Stehfest, H. (1970). Commun. ACM 13(1), 47-49.
  *   Abate, J. & Whitt, W. (2006). INFORMS J. Comput. 18(4), 408-421.
  */
+#include <algorithm>
 #include <cstdlib>
 #include <iostream>
 #include <fstream>
@@ -34,7 +35,10 @@ void output_algorithm_table(const std::string& fname, FuncT ft, FuncS Fs, const 
     {
         double fta = ft(t);
         double ftn = nilt::invert(method, Fs, t);
-        double err = std::abs(ftn - fta) / std::abs(fta);
+        // Guard against fta == 0 (or underflow) so the CSV never contains
+        // inf/nan errors.
+        double denom = std::max(std::abs(fta), 1e-30);
+        double err = std::abs(ftn - fta) / denom;
 
         ofs << t << "," << fta << "," << ftn << "," << err << std::endl;
     }

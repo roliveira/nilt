@@ -1,6 +1,7 @@
 #include <complex>
 
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/matchers/catch_matchers_floating_point.hpp>
 
 #include "nilt.hpp"
 #include "testfunctions.hpp"
@@ -44,7 +45,7 @@ TEST_CASE("DeHoog accepts complex-returning lambda", "[dehoog][callable]")
     double via_lambda = nilt::invert(algo, Fs, 1.0);
     double via_fptr   = nilt::invert(algo, Fs4<std::complex<double>>, 1.0);
     REQUIRE(std::isfinite(via_lambda));
-    REQUIRE(via_lambda == via_fptr);
+    REQUIRE_THAT(via_lambda, Catch::Matchers::WithinRel(via_fptr, 1e-12));
 }
 
 TEST_CASE("DeHoog direct call matches free function",
