@@ -66,9 +66,11 @@ endif()
 if(NILT_BUILD_VERIFICATION)
     add_executable(verification          verification/verification.cpp)
     add_executable(benchmark_timing      verification/benchmark_timing.cpp)
+    add_executable(benchmark_array       verification/benchmark_array.cpp)
 
     target_link_libraries(verification          PRIVATE nilt nilt_warnings)
     target_link_libraries(benchmark_timing      PRIVATE nilt nilt_warnings)
+    target_link_libraries(benchmark_array       PRIVATE nilt nilt_warnings)
 
     target_include_directories(verification PRIVATE
         "${CMAKE_CURRENT_SOURCE_DIR}/verification"

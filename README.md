@@ -65,6 +65,45 @@ algo.M = 60
 f = algo(lambda s: 1.0 / (s + 1.0), 2.5)
 ```
 
+### Fast whole-array inversion
+
+For inverting at many `t`-values, prefer passing the whole array in one call.
+The Python bindings dispatch to a batched C++ path that invokes your
+`Fs` callback exactly once with a numpy array of all `s`-values needed
+across the whole `t`-array - one Python round-trip regardless of `len(t)`.
+Speedup vs. a scalar-per-t loop reaches ~60× for Stehfest and grows with
+array size for Talbot / DeHoog.
+
+```python
+import numpy as np, nilt
+
+# Vectorized F: numpy handles the whole s-array once
+def Fs(s):
+    return 1.0 / (s + 1.0)
+
+t = np.linspace(0.1, 5.0, 10_000)
+f = nilt.Talbot()(Fs, t)          # single Python -> Fs call, ndarray out
+```
+
+For direct access to the batch interface in C++ (e.g. when `F(s)` itself
+is expensive and can amortize a vectorized evaluation), each class exposes
+an `eval_batched` overload:
+
+```cpp
+nilt::Stehfest algo;
+std::vector<double> t   = {0.5, 1.0, 2.0, 4.0};
+std::vector<double> out(t.size());
+
+algo.eval_batched(
+    /* Fs_batched: */ [](const double* s, double* fv, int n) {
+        for (int i = 0; i < n; ++i) fv[i] = 1.0 / (s[i] + 1.0);
+    },
+    t.data(), out.data(), (int)t.size());   // one call, all t
+```
+
+The pure-C++ `nilt::invert(algo, F, t_vec)` remains a fast scalar
+loop and is recommended when `F(s)` is cheap.
+
 
 ## Methods
 

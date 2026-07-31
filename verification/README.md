@@ -34,8 +34,19 @@ cmake --build build
 cd build
 ./verification
 python ../verification/verification.py
-python ../verification/benchmark_timing.py
+
+# Timing benchmarks
+./benchmark_timing         # scalar-t sweep over N/M       -> cpp_benchmark_timing.csv
+python ../verification/benchmark_timing.py                  # ->  py_benchmark_timing.csv
+
+./benchmark_array          # array-length sweep at defaults -> cpp_benchmark_array.csv
+python ../verification/benchmark_array.py                   # ->  py_benchmark_array.csv
+
+python ../verification/plot_benchmark.py  # -> benchmark_timing.png, benchmark_array.png
 ```
+
+The array benchmark uses the batched Python entry point (`algo(Fs, t_array)`),
+which invokes `Fs` exactly once per call - see the main README for details.
 
 ## References
 
