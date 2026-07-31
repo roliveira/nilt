@@ -158,6 +158,131 @@ public:
         return (h / std::complex<double>(0.0, 2.0 * nilt::util::PI) * ans).real();
     }
 
+    /// Batched evaluation: `Fs_batched(const complex* s, complex* out, int n)`
+    /// fills `out[0..n-1]` with F(s[0..n-1]) in a single call.  Optimized for
+    /// callers where per-callback overhead dominates (e.g. Python bindings).
+    /// For pure C++ with a cheap inlinable Fs, prefer `operator()`.
+    template<typename Fbatch>
+    double eval_batched(Fbatch&& Fs_batched, double t) const
+    {
+        if (t <= 0.0)
+            throw std::domain_error("Talbot: t must be positive");
+
+        if (N < 1)
+            throw std::invalid_argument("Talbot: N must be >= 1");
+
+        const double scale = static_cast<double>(N) / t;
+        const double h = 2.0 * nilt::util::PI / N;
+
+        // Precompute contour points z_k and weights dz_k, then batch-eval Fs
+        std::vector<std::complex<double>> z_vals(N), dz_vals(N), f_vals(N);
+
+        if (N >= 8 && N <= 64) {
+            const int row_offset = (N - 8) * 64;
+            for (int k = 0; k < N; ++k)
+            {
+                const auto& p = TALBOT_TABLE.data[row_offset + k];
+                z_vals[k]  = std::complex<double>(SHIFT + scale * p.gamma_re, scale * p.gamma_im);
+                dz_vals[k] = std::complex<double>(scale * p.dgamma_re, scale * p.dgamma_im);
+            }
+        } else {
+            for (int k = 0; k < N; ++k)
+            {
+                double theta = -nilt::util::PI + (k + 0.5) * h;
+                double ct = std::cos(0.6407 * theta);
+                double st = std::sin(0.6407 * theta);
+
+                if (st == 0.0) {
+                    // Removable singularity at theta = 0 (odd N).
+                    z_vals[k]  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
+                    dz_vals[k] = scale * std::complex<double>(0.0, 0.2645);
+                } else {
+                    z_vals[k] = SHIFT + scale
+                        * (0.5017 * theta * ct / st + std::complex<double>(-0.6122, 0.2645 * theta));
+                    dz_vals[k] = scale
+                        * (-0.5017 * 0.6407 * theta / (st * st) + 0.5017 * ct / st
+                           + std::complex<double>(0.0, 0.2645));
+                }
+            }
+        }
+
+        Fs_batched(z_vals.data(), f_vals.data(), N);
+
+        std::complex<double> ans(0.0, 0.0);
+        for (int k = 0; k < N; ++k)
+            ans += std::exp(z_vals[k] * t) * f_vals[k] * dz_vals[k];
+
+        return (h / std::complex<double>(0.0, 2.0 * nilt::util::PI) * ans).real();
+    }
+
+    /// Array-batched evaluation: invokes `Fs_batched` exactly once with all
+    /// `nt * N` contour points across every time in `t[0..nt-1]`.  Ideal for
+    /// bindings inverting whole arrays: one Python round-trip per call
+    /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
+    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    template<typename Fbatch>
+    void eval_batched(Fbatch&& Fs_batched,
+                      const double* t, double* out, int nt) const
+    {
+        if (N < 1)
+            throw std::invalid_argument("Talbot: N must be >= 1");
+        for (int i = 0; i < nt; ++i)
+            if (t[i] <= 0.0)
+                throw std::domain_error("Talbot: t must be positive");
+
+        const double h = 2.0 * nilt::util::PI / N;
+        const size_t total = static_cast<size_t>(nt) * N;
+
+        std::vector<std::complex<double>> s(total), fv(total), dz_all(total);
+
+        for (int i = 0; i < nt; ++i)
+        {
+            const double scale = static_cast<double>(N) / t[i];
+
+            if (N >= 8 && N <= 64) {
+                const int row_offset = (N - 8) * 64;
+                for (int k = 0; k < N; ++k)
+                {
+                    const auto& p = TALBOT_TABLE.data[row_offset + k];
+                    s     [i * N + k] = std::complex<double>(SHIFT + scale * p.gamma_re, scale * p.gamma_im);
+                    dz_all[i * N + k] = std::complex<double>(scale * p.dgamma_re, scale * p.dgamma_im);
+                }
+            } else {
+                for (int k = 0; k < N; ++k)
+                {
+                    double theta = -nilt::util::PI + (k + 0.5) * h;
+                    double ct = std::cos(0.6407 * theta);
+                    double st = std::sin(0.6407 * theta);
+
+                    std::complex<double> z, dz;
+                    if (st == 0.0) {
+                        z  = SHIFT + scale * (0.5017 / 0.6407 - 0.6122);
+                        dz = scale * std::complex<double>(0.0, 0.2645);
+                    } else {
+                        z = SHIFT + scale
+                            * (0.5017 * theta * ct / st + std::complex<double>(-0.6122, 0.2645 * theta));
+                        dz = scale
+                            * (-0.5017 * 0.6407 * theta / (st * st) + 0.5017 * ct / st
+                               + std::complex<double>(0.0, 0.2645));
+                    }
+                    s     [i * N + k] = z;
+                    dz_all[i * N + k] = dz;
+                }
+            }
+        }
+
+        Fs_batched(s.data(), fv.data(), nt * N);
+
+        const std::complex<double> denom(0.0, 2.0 * nilt::util::PI);
+        for (int i = 0; i < nt; ++i)
+        {
+            std::complex<double> ans(0.0, 0.0);
+            for (int k = 0; k < N; ++k)
+                ans += std::exp(s[i * N + k] * t[i]) * fv[i * N + k] * dz_all[i * N + k];
+            out[i] = (h / denom * ans).real();
+        }
+    }
+
     /// Returns the N quadrature angles theta_k = -PI + (k+0.5) * 2*PI/N.
     std::vector<double> get_thetas() const
     {
