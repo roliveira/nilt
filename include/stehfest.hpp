@@ -95,8 +95,8 @@ public:
     {
         if (t <= 0.0)
             throw std::domain_error("Stehfest: t must be positive");
-        
-        if (N < 2 || N > 20 || N % 2 != 0) 
+
+        if (N < 2 || N > 20 || N % 2 != 0)
             throw std::invalid_argument("Invalid N: N must be even and between 2 and 20");
 
         // Direct pointer into the precomputed coefficient table - no allocation
@@ -113,6 +113,76 @@ public:
         }
 
         return ln2t * y;
+    }
+
+    /// Batched evaluation: `Fs_batched(const double* s, double* out, int n)`
+    /// fills `out[0..n-1]` with F(s[0..n-1]) in a single call.  Optimized for
+    /// callers where per-callback overhead dominates (e.g. Python bindings):
+    /// reduces N scalar callbacks to one vectorized call.  For pure C++ with
+    /// a cheap inlinable Fs, prefer `operator()` - it is significantly faster
+    /// because the fused loop keeps intermediates in registers.
+    template<typename Fbatch>
+    double eval_batched(Fbatch&& Fs_batched, double t) const
+    {
+        if (t <= 0.0)
+            throw std::domain_error("Stehfest: t must be positive");
+
+        if (N < 2 || N > 20 || N % 2 != 0)
+            throw std::invalid_argument("Invalid N: N must be even and between 2 and 20");
+
+        const double* coeff = &CONST_COEFFICIENT_RAW_MATRIX.data[(N / 2 - 1) * 21];
+        double ln2t = std::log(2.0) / t;
+
+        double s_vals[20];
+        double f_vals[20];
+        for (int i = 0; i < N; ++i)
+            s_vals[i] = (i + 1) * ln2t;
+
+        Fs_batched(s_vals, f_vals, N);
+
+        double y = 0.0;
+        for (int i = 0; i < N; ++i)
+            y += coeff[i] * f_vals[i];
+
+        return ln2t * y;
+    }
+
+    /// Array-batched evaluation: invokes `Fs_batched` exactly once with all
+    /// `nt * N` s-values across every time in `t[0..nt-1]`.  Ideal for
+    /// bindings inverting whole arrays: one Python round-trip per call
+    /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
+    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    template<typename Fbatch>
+    void eval_batched(Fbatch&& Fs_batched,
+                      const double* t, double* out, int nt) const
+    {
+        if (N < 2 || N > 20 || N % 2 != 0)
+            throw std::invalid_argument("Invalid N: N must be even and between 2 and 20");
+        for (int i = 0; i < nt; ++i)
+            if (t[i] <= 0.0)
+                throw std::domain_error("Stehfest: t must be positive");
+
+        std::vector<double> s(static_cast<size_t>(nt) * N);
+        std::vector<double> fv(static_cast<size_t>(nt) * N);
+
+        for (int i = 0; i < nt; ++i)
+        {
+            double ln2t = std::log(2.0) / t[i];
+            for (int k = 0; k < N; ++k)
+                s[i * N + k] = (k + 1) * ln2t;
+        }
+
+        Fs_batched(s.data(), fv.data(), nt * N);
+
+        const double* coeff = &CONST_COEFFICIENT_RAW_MATRIX.data[(N / 2 - 1) * 21];
+        for (int i = 0; i < nt; ++i)
+        {
+            double ln2t = std::log(2.0) / t[i];
+            double y = 0.0;
+            for (int k = 0; k < N; ++k)
+                y += coeff[k] * fv[i * N + k];
+            out[i] = ln2t * y;
+        }
     }
 
     /// Returns a copy of the N precomputed Stehfest coefficients.

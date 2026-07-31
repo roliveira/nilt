@@ -118,3 +118,57 @@ TEST_CASE("Stehfest coefficients sum to zero for even N",
         }
     }
 }
+
+TEST_CASE("Stehfest array eval_batched matches operator() per t",
+          "[stehfest][eval_batched]")
+{
+    nilt::Stehfest algo;
+    const std::vector<double> t = {0.25, 0.5, 1.0, 2.0, 4.0, 8.0};
+    std::vector<double> out(t.size());
+
+    algo.eval_batched(
+        [](const double* s, double* f, int n) {
+            for (int i = 0; i < n; ++i) f[i] = Fs4<double>(s[i]);
+        },
+        t.data(), out.data(), static_cast<int>(t.size()));
+
+    for (size_t i = 0; i < t.size(); ++i) {
+        CAPTURE(t[i]);
+        REQUIRE_THAT(out[i], WithinRel(algo(Fs4<double>, t[i]), 1e-12));
+    }
+}
+
+TEST_CASE("Stehfest array eval_batched invokes Fs_batched exactly once",
+          "[stehfest][eval_batched]")
+{
+    nilt::Stehfest algo;
+    const std::vector<double> t = {0.5, 1.0, 2.0, 3.0};
+    std::vector<double> out(t.size());
+    int call_count = 0;
+    int total_points = 0;
+
+    algo.eval_batched(
+        [&](const double* s, double* f, int n) {
+            ++call_count;
+            total_points = n;
+            for (int i = 0; i < n; ++i) f[i] = Fs4<double>(s[i]);
+        },
+        t.data(), out.data(), static_cast<int>(t.size()));
+
+    REQUIRE(call_count == 1);
+    REQUIRE(total_points == static_cast<int>(t.size()) * algo.N);
+}
+
+TEST_CASE("Stehfest array eval_batched rejects non-positive t",
+          "[stehfest][eval_batched][domain]")
+{
+    nilt::Stehfest algo;
+    const std::vector<double> t_bad = {1.0, 2.0, 0.0, 3.0};
+    std::vector<double> out(t_bad.size());
+    auto Fb = [](const double* s, double* f, int n) {
+        for (int i = 0; i < n; ++i) f[i] = Fs4<double>(s[i]);
+    };
+    REQUIRE_THROWS_AS(
+        algo.eval_batched(Fb, t_bad.data(), out.data(), 4),
+        std::domain_error);
+}
