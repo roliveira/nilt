@@ -2,6 +2,87 @@
 
 <!-- version list -->
 
+## v3.2.0 (2026-07-31)
+
+### Bug Fixes
+
+- Added comments and notes to algorithms ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Addressing PR comments ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Corrected talbot method for singularity (div 0) ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Created util and moved some definitions around ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Formatting issues ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Missing import after refactor ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Moved (duplicated) bessel utility function ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Output cpp_ prefix and correct import ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Removed hardcoded path to build on the python scripts
+  ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Simplified plot script ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Simplified test-base for cpp and py ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Standarized verification and benchmark plots and tables
+  ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Updated examples and readme ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+### Features
+
+- Abuse constexpr to improve performance of stehfest
+  ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Add batched evaluation for DeHoog ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Add batched evaluation for Stehfest ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Add batched evaluation for Talbot ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Add benchmark for array sizes ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Add compile-time expressions, iterables as input and batched evaluations
+  ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Added compile-time table for talbot ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Added own implementation of constexpr math ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Modified python `invert` method and updated binding
+  ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+- Update binding to use batched evaluation ([#37](https://github.com/roliveira/nilt/pull/37),
+  [`9d5270d`](https://github.com/roliveira/nilt/commit/9d5270d009a25379d5344cb16428aa00851c405c))
+
+
 ## v3.1.4 (2026-07-28)
 
 ### Bug Fixes
