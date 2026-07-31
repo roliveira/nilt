@@ -74,9 +74,9 @@ def Fs_time(s):
 t = np.geomspace(0.01, 100.0, 80)
 
 ana = analytical(r_obs, t)
-st  = nilt.invert(stehfest, Fs_time, t)
-ta  = nilt.invert(talbot,   Fs_time, t)
-dh  = nilt.invert(dehoog,   Fs_time, t)
+st  = stehfest(Fs_time, t)
+ta  = talbot(Fs_time, t)
+dh  = dehoog(Fs_time, t)
 
 out = os.path.join(out_dir, "py_groundwater_theis_well_time.csv")
 np.savetxt(out, np.column_stack([t, ana, st, ta, dh]),
@@ -94,9 +94,9 @@ dh_r = np.empty_like(r_arr)
 for i, ri in enumerate(r_arr):
     def Fs_r(s, _r=ri):
         return Q / (2.0 * np.pi * T * s) * K0(_r * np.sqrt(s * S / T))
-    st_r[i] = nilt.invert(stehfest, Fs_r, t_snap)
-    ta_r[i] = nilt.invert(talbot,   Fs_r, t_snap)
-    dh_r[i] = nilt.invert(dehoog,   Fs_r, t_snap)
+    st_r[i] = stehfest(Fs_r, t_snap)
+    ta_r[i] = talbot(Fs_r, t_snap)
+    dh_r[i] = dehoog(Fs_r, t_snap)
 
 out2 = os.path.join(out_dir, "py_groundwater_theis_well_distance.csv")
 np.savetxt(out2, np.column_stack([r_arr, ana_r, st_r, ta_r, dh_r]),

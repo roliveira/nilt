@@ -35,7 +35,7 @@ for fname, funcs in TEST_FUNCTIONS.items():
             fta = ft(t)
             if isinstance(fta, complex):
                 fta = fta.real
-            ftn = nilt.invert(algo, Fs, t)
+            ftn = algo(Fs, t)
             err = abs(ftn - fta) / max(abs(fta), 1e-30)
             rows.append([t, fta, ftn, err])
 

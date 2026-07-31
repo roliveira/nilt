@@ -29,11 +29,11 @@ def Fs_cplx(s):
 def time_inversion(algo, Fs):
     """Return average time in microseconds for a single inversion."""
     for _ in range(WARMUP):
-        nilt.invert(algo, Fs, T_EVAL)
+        algo(Fs, T_EVAL)
 
     t0 = time.perf_counter()
     for _ in range(REPEATS):
-        nilt.invert(algo, Fs, T_EVAL)
+        algo(Fs, T_EVAL)
     t1 = time.perf_counter()
 
     return (t1 - t0) / REPEATS * 1e6  # seconds -> microseconds

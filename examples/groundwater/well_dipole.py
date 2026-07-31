@@ -64,8 +64,8 @@ dehoog = nilt.DeHoog()
 
 t = np.geomspace(10.0, 100000.0, 80)
 ana = analytical_obs(t)
-ta  = nilt.invert(talbot, Fs_obs, t)
-dh  = nilt.invert(dehoog, Fs_obs, t)
+ta  = talbot(Fs_obs, t)
+dh  = dehoog(Fs_obs, t)
 
 out_dir = os.path.join(os.path.dirname(__file__), "build")
 os.makedirs(out_dir, exist_ok=True)
@@ -96,7 +96,7 @@ for j in range(ny):
             sa = np.sqrt(s / alpha)
             return (Qp / (2 * np.pi * T_aq * s) * K0(_dp * sa)
                   - Qi / (2 * np.pi * T_aq * s) * K0(_di * sa))
-        nilt_val = nilt.invert(talbot, Fs_xy, t_snap)
+        nilt_val = talbot(Fs_xy, t_snap)
         data.append([xx, yy, anal, nilt_val])
 
 out2 = os.path.join(out_dir, "py_groundwater_well_dipole_spatial.csv")

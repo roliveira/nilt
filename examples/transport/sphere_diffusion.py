@@ -51,9 +51,9 @@ dehoog   = nilt.DeHoog()
 t = np.geomspace(10.0, 5000.0, 80)
 
 ana = analytical(t)
-st  = nilt.invert(stehfest, Fs, t)
-ta  = nilt.invert(talbot,   Fs, t)
-dh  = nilt.invert(dehoog,   Fs, t)
+st  = stehfest(Fs, t)
+ta  = talbot(Fs, t)
+dh  = dehoog(Fs, t)
 
 out = os.path.join(os.path.dirname(__file__), "build", "py_transport_sphere_diffusion.csv")
 os.makedirs(os.path.dirname(out), exist_ok=True)

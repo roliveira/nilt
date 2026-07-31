@@ -35,6 +35,10 @@ double f = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 
 nilt::DeHoog dh;
 double f = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
 
+// Vector of times (algorithm is constructed once, reused for all t)
+std::vector<double> t = {0.1, 0.5, 1.0, 2.0, 5.0};
+auto results = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, t);
+
 // Custom parameters (see Parameters section for full list)
 nilt::Stehfest algo;
 algo.N = 12;
@@ -44,24 +48,21 @@ double f = nilt::invert(algo, my_func, 1.0);
 **Python**
 
 ```python
-import numpy as np
-from nilt import Stehfest, Talbot, DeHoog, invert
+import nilt
 
-# "Free" function - works with any callable
-f = invert(Talbot(), lambda s: 1.0 / (s + 1.0), 1.0)
-
-# Direct algorithm call (equivalent)
-dh = DeHoog()
-f = dh(lambda s: 1.0 / (s + 1.0), 2.5)
-
-# Custom parameters (see Parameters section for full list)
-algo = Stehfest()
-algo.N = 12
-f = invert(algo, my_func, 1.0)
+# Scalar evaluation (Stehfest is the default method)
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0)
 
 # Array of times (returns numpy array)
-t = np.linspace(0.1, 10, 100)
-results = invert(DeHoog(), lambda s: 1.0 / (s + 1.0), t)
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), [0.1, 0.5, 1.0, 2.0, 5.0])
+
+# Pick a different method, pass parameters as keyword arguments
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0, method="Talbot", N=64)
+
+# Class instances are callable directly (useful when reusing an algorithm)
+algo = nilt.DeHoog()
+algo.M = 60
+f = algo(lambda s: 1.0 / (s + 1.0), 2.5)
 ```
 
 
@@ -77,10 +78,14 @@ Three algorithms are implemented:
 
 All algorithms accept any callable via the free function or direct call:
 
-|               | C++                        | Python                    |
-|---------------|----------------------------|---------------------------|
-| Free function | `nilt::invert(algo, F, t)` | `nilt.invert(algo, F, t)` |
-| Direct call   | `algo(F, t)`               | `algo(F, t)`              |
+|               | C++                        | Python                                  |
+|---------------|----------------------------|------------------------------------------|
+| Free function | `nilt::invert(algo, F, t)` | `nilt.invert(F, t, method=..., **kwargs)` |
+| Direct call   | `algo(F, t)`               | `algo(F, t)`                             |
+
+The Python free function selects the algorithm by name (case-insensitive) and
+forwards keyword arguments as parameters. The C++ free function takes an
+algorithm instance directly.
 
 
 ### Parameters
@@ -184,9 +189,9 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-Once installed, `from nilt import ...` works as expected. The `invert` function
-accepts both scalar `float` and NumPy array arguments. 
-Using NumPy arrays is slightly more efficient than having to evaluate several individual floats at a time. 
+Once installed, `import nilt` works as expected. The `invert` function
+accepts scalars, lists, tuples, and NumPy arrays as time arguments.
+Passing an array is more efficient than calling `invert` in a loop.
 
 
 ### Python tests (pytest)
