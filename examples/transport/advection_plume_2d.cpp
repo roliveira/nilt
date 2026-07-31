@@ -35,7 +35,7 @@
 
 #include "nilt.hpp"
 #include "util.hpp"
-#include "../utils/bessel.hpp"
+#include "bessel.hpp"
 
 int main()
 {
@@ -63,7 +63,7 @@ int main()
     nilt::DeHoog   dehoog;
 
     {
-        std::ofstream ofs("transport_advection_plume_2d.csv");
+        std::ofstream ofs("cpp_transport_advection_plume_2d.csv");
         ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -76,7 +76,7 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_pt, t)
                 << std::endl;
         }
-        std::cout << "transport_advection_plume_2d.csv" << std::endl;
+        std::cout << "cpp_transport_advection_plume_2d.csv" << std::endl;
     }
 
     const double t_snap = 5.0;   // [s]
@@ -88,7 +88,7 @@ int main()
     const int    ny     = 80;
 
     {
-        std::ofstream ofs("transport_advection_plume_2d_spatial.csv");
+        std::ofstream ofs("cpp_transport_advection_plume_2d_spatial.csv");
         ofs << "x,y,analytical,talbot" << std::endl;
         ofs.precision(12);
 
@@ -123,7 +123,7 @@ int main()
                 ofs << xx << "," << yy << "," << anal << "," << nilt_val << std::endl;
             }
         }
-        std::cout << "transport_advection_plume_2d_spatial.csv" << std::endl;
+        std::cout << "cpp_transport_advection_plume_2d_spatial.csv" << std::endl;
     }
 
     return 0;

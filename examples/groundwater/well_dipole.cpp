@@ -35,7 +35,7 @@
 
 #include "nilt.hpp"
 #include "util.hpp"
-#include "../utils/bessel.hpp"
+#include "bessel.hpp"
 
 // Exponential integral E1(u) for real positive u.
 double expint_e1(double u)
@@ -106,7 +106,7 @@ int main()
     nilt::DeHoog   dehoog;
 
     {
-        std::ofstream ofs("groundwater_well_dipole.csv");
+        std::ofstream ofs("cpp_groundwater_well_dipole.csv");
         ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -119,7 +119,7 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_obs, t)
                 << std::endl;
         }
-        std::cout << "groundwater_well_dipole.csv" << std::endl;
+        std::cout << "cpp_groundwater_well_dipole.csv" << std::endl;
     }
 
     const double t_snap = 7200.0;  // 2 hours [s]
@@ -128,7 +128,7 @@ int main()
     const int    ny     = 120;
 
     {
-        std::ofstream ofs("groundwater_well_dipole_spatial.csv");
+        std::ofstream ofs("cpp_groundwater_well_dipole_spatial.csv");
         ofs << "x,y,analytical,talbot" << std::endl;
         ofs.precision(12);
 
@@ -156,7 +156,7 @@ int main()
                 ofs << xx << "," << yy << "," << anal << "," << nilt_val << std::endl;
             }
         }
-        std::cout << "groundwater_well_dipole_spatial.csv" << std::endl;
+        std::cout << "cpp_groundwater_well_dipole_spatial.csv" << std::endl;
     }
 
     return 0;

@@ -36,7 +36,7 @@
 
 #include "nilt.hpp"
 #include "util.hpp"
-#include "../utils/bessel.hpp"
+#include "bessel.hpp"
 
 // Exponential integral E1(u) for real positive u.
 // Uses the series for small u and the continued-fraction for large u.
@@ -109,7 +109,7 @@ int main()
     };
 
     {
-        std::ofstream ofs("groundwater_theis_well_time.csv");
+        std::ofstream ofs("cpp_groundwater_theis_well_time.csv");
         ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -122,13 +122,13 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_time, t)
                 << std::endl;
         }
-        std::cout << "groundwater_theis_well_time.csv" << std::endl;
+        std::cout << "cpp_groundwater_theis_well_time.csv" << std::endl;
     }
 
     const double t_snap = 2.0;  // snapshot time [days] (48 h)
 
     {
-        std::ofstream ofs("groundwater_theis_well_distance.csv");
+        std::ofstream ofs("cpp_groundwater_theis_well_distance.csv");
         ofs << "r,analytical,stehfest,talbot,dehoog" << std::endl;
         ofs.precision(16);
 
@@ -145,7 +145,7 @@ int main()
                 << "," << nilt::invert(dehoog,   Fs_r, t_snap)
                 << std::endl;
         }
-        std::cout << "groundwater_theis_well_distance.csv" << std::endl;
+        std::cout << "cpp_groundwater_theis_well_distance.csv" << std::endl;
     }
 
     return 0;

@@ -35,7 +35,7 @@
 #include <iostream>
 
 #include "nilt.hpp"
-#include "../utils/bessel.hpp"
+#include "bessel.hpp"
 
 int main()
 {
@@ -77,7 +77,7 @@ int main()
     nilt::Talbot   talbot;
     nilt::DeHoog   dehoog;
 
-    std::ofstream ofs("transport_cylinder_diffusion.csv");
+    std::ofstream ofs("cpp_transport_cylinder_diffusion.csv");
     ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
     ofs.precision(16);
 
@@ -91,12 +91,12 @@ int main()
             << std::endl;
     }
 
-    std::cout << "transport_cylinder_diffusion.csv" << std::endl;
+    std::cout << "cpp_transport_cylinder_diffusion.csv" << std::endl;
 
     const double t_snap = 500.0;  // [s]
     const int    nr     = 200;
 
-    std::ofstream ofs2("transport_cylinder_diffusion_spatial.csv");
+    std::ofstream ofs2("cpp_transport_cylinder_diffusion_spatial.csv");
     ofs2 << "r,analytical,talbot" << std::endl;
     ofs2.precision(16);
 
@@ -115,7 +115,7 @@ int main()
         double val = nilt::invert(talbot, Fs_r, t_snap);
         ofs2 << ri << "," << val << "," << val << std::endl;
     }
-    std::cout << "transport_cylinder_diffusion_spatial.csv" << std::endl;
+    std::cout << "cpp_transport_cylinder_diffusion_spatial.csv" << std::endl;
 
     return 0;
 }

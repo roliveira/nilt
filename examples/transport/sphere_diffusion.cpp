@@ -59,7 +59,7 @@ int main()
     nilt::Talbot   talbot;
     nilt::DeHoog   dehoog;
 
-    std::ofstream ofs("transport_sphere_diffusion.csv");
+    std::ofstream ofs("cpp_transport_sphere_diffusion.csv");
     ofs << "t,analytical,stehfest,talbot,dehoog" << std::endl;
     ofs.precision(16);
 
@@ -73,6 +73,6 @@ int main()
             << std::endl;
     }
 
-    std::cout << "transport_sphere_diffusion.csv" << std::endl;
+    std::cout << "cpp_transport_sphere_diffusion.csv" << std::endl;
     return 0;
 }
