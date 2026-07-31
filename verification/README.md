@@ -5,18 +5,18 @@ with known analytical solutions.
 
 ## Test Functions
 
-| # | f(t) | F(s) | Source |
-|---|------|------|--------|
-| 1 | $1/\sqrt{\pi t}$ | $1/\sqrt{s}$ | Stehfest (1970) |
-| 2 | $-\gamma - \ln t$ | $\ln(s)/s$ | Stehfest (1970) |
-| 3 | $t^3/6$ | $s^{-4}$ | Stehfest (1970) |
-| 4 | $e^{-t}$ | $1/(s+1)$ | Standard |
-| 5 | $\sin\sqrt{2t}$ | $\sqrt{\pi/(2s^3)}\,e^{-1/(2s)}$ | Stehfest (1970) |
-| 6 | $t$ | $1/s^2$ | Abate & Whitt (2006) |
-| 7 | $t\,e^{-t}$ | $1/(s+1)^2$ | Abate & Whitt (2006) |
-| 8 | $\sin t$ | $1/(s^2+1)$ | Abate & Whitt (2006) |
-| 9 | $\cos t$ | $s/(s^2+1)$ | Abate & Whitt (2006) |
-| 10 | $e^{-t}\sin t$ | $1/((s+1)^2+1)$ | Abate & Whitt (2006) |
+|  # | f(t)              | F(s)                             | Source               |
+|----|-------------------|----------------------------------|----------------------|
+|  1 | $1/\sqrt{\pi t}$  | $1/\sqrt{s}$                     | Stehfest (1970)      |
+|  2 | $-\gamma - \ln t$ | $\ln(s)/s$                       | Stehfest (1970)      |
+|  3 | $t^3/6$           | $s^{-4}$                         | Stehfest (1970)      |
+|  4 | $e^{-t}$          | $1/(s+1)$                        | Stehfest (1970)      |
+|  5 | $\sin\sqrt{2t}$   | $\sqrt{\pi/(2s^3)}\,e^{-1/(2s)}$ | Stehfest (1970)      |
+|  6 | $t$               | $1/s^2$                          | Abate & Whitt (2006) |
+|  7 | $t\,e^{-t}$       | $1/(s+1)^2$                      | Abate & Whitt (2006) |
+|  8 | $\sin t$          | $1/(s^2+1)$                      | Abate & Whitt (2006) |
+|  9 | $\cos t$          | $s/(s^2+1)$                      | Abate & Whitt (2006) |
+| 10 | $e^{-t}\sin t$    | $1/((s+1)^2+1)$                  | Abate & Whitt (2006) |
 
 ## Output
 
