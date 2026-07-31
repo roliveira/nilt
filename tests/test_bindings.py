@@ -158,3 +158,38 @@ class TestAllThreeAlgorithmsCallable:
         result = algo(Fs, t)
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
+
+
+class TestArrayCallBatchesFs:
+    """The array path must invoke Fs exactly once per call (batched)."""
+
+    @pytest.mark.parametrize("AlgoClass", [nilt.Stehfest, nilt.Talbot, nilt.DeHoog])
+    def test_array_call_invokes_Fs_once(self, AlgoClass, Fs):
+        algo = AlgoClass()
+        count = {"n": 0, "total": 0}
+
+        def Fs_counted(s):
+            count["n"] += 1
+            count["total"] += np.asarray(s).size
+            return Fs(s)
+
+        t = np.linspace(0.5, 4.0, 25)
+        algo(Fs_counted, t)
+
+        assert count["n"] == 1
+        assert count["total"] > len(t)  # batched: many s-values per t
+
+    @pytest.mark.parametrize("AlgoClass", [nilt.Stehfest, nilt.Talbot, nilt.DeHoog])
+    def test_array_call_matches_scalar_per_t(self, AlgoClass, Fs):
+        algo = AlgoClass()
+        t = np.array([0.25, 0.5, 1.0, 2.0, 4.0])
+        arr = algo(Fs, t)
+        scl = np.array([algo(Fs, float(ti)) for ti in t])
+        np.testing.assert_allclose(arr, scl, rtol=1e-10, atol=1e-12)
+
+    @pytest.mark.parametrize("AlgoClass", [nilt.Stehfest, nilt.Talbot, nilt.DeHoog])
+    def test_array_call_rejects_non_positive_t(self, AlgoClass, Fs):
+        algo = AlgoClass()
+        t_bad = np.array([1.0, 2.0, 0.0])
+        with pytest.raises((ValueError, RuntimeError)):
+            algo(Fs, t_bad)

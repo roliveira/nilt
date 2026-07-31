@@ -12,6 +12,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/complex.h>
 #include <pybind11/functional.h>
+#include <cstring>
 
 #include "nilt.hpp"
 #include "util.hpp"
@@ -19,73 +20,69 @@
 
 namespace py = pybind11;
 
-// --- Stehfest helpers (real-valued F(s)) ------------------------------------
+// --- Batched forwarders ------------------------------------------------------
+// Each algo exposes two `eval_batched` overloads: per-t (single s-array) and
+// per-array (all s-values across all t in one shot).  Both are forwarded via
+// a lambda that (1) copies the s-array into a numpy array, (2) calls Python
+// Fs once, (3) copies the result back.  Result: one Python round-trip per
+// scalar call and one round-trip per whole-array call.
 
-static double stehfest_scalar(const nilt::Stehfest& algo,
-                              py::function Fs, double t)
+template<typename S>
+struct NumpyBatched
 {
-    return algo([&](double s) { return Fs(s).cast<double>(); }, t);
+    py::function Fs;
+    void operator()(const S* s, S* out, int n) const
+    {
+        py::array_t<S> s_arr(n);
+        std::memcpy(s_arr.mutable_data(), s, n * sizeof(S));
+        auto f_arr = Fs(s_arr).template cast<py::array_t<S>>();
+        std::memcpy(out, f_arr.data(), n * sizeof(S));
+    }
+};
+
+template<typename Algo, typename S>
+static double scalar_call(const Algo& algo, py::function Fs, double t)
+{
+    return algo.eval_batched(NumpyBatched<S>{Fs}, t);
 }
+
+template<typename Algo, typename S>
+static py::array_t<double> array_call(
+    const Algo& algo, py::function Fs, py::array_t<double> t_arr)
+{
+    py::array_t<double> out(t_arr.shape(0));
+    algo.eval_batched(
+        NumpyBatched<S>{Fs},
+        t_arr.data(), out.mutable_data(), static_cast<int>(t_arr.shape(0)));
+    return out;
+}
+
+// --- Stehfest ---------------------------------------------------------------
+
+static double stehfest_scalar(const nilt::Stehfest& a, py::function Fs, double t)
+    { return scalar_call<nilt::Stehfest, double>(a, Fs, t); }
 
 static py::array_t<double> stehfest_array(
-    const nilt::Stehfest& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](double s) { return Fs(s).cast<double>(); };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
+    const nilt::Stehfest& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::Stehfest, double>(a, Fs, t); }
 
-// --- Talbot helpers (complex-valued F(s)) -----------------------------------
+// --- Talbot -----------------------------------------------------------------
 
-static double talbot_scalar(const nilt::Talbot& algo,
-                            py::function Fs, double t)
-{
-    return algo([&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    }, t);
-}
+static double talbot_scalar(const nilt::Talbot& a, py::function Fs, double t)
+    { return scalar_call<nilt::Talbot, std::complex<double>>(a, Fs, t); }
 
 static py::array_t<double> talbot_array(
-    const nilt::Talbot& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
+    const nilt::Talbot& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::Talbot, std::complex<double>>(a, Fs, t); }
 
-// --- DeHoog helpers (complex-valued F(s)) -----------------------------------
+// --- DeHoog -----------------------------------------------------------------
 
-static double dehoog_scalar(const nilt::DeHoog& algo,
-                            py::function Fs, double t)
-{
-    return algo([&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    }, t);
-}
+static double dehoog_scalar(const nilt::DeHoog& a, py::function Fs, double t)
+    { return scalar_call<nilt::DeHoog, std::complex<double>>(a, Fs, t); }
 
 static py::array_t<double> dehoog_array(
-    const nilt::DeHoog& algo, py::function Fs, py::array_t<double> t_arr)
-{
-    auto t = t_arr.unchecked<1>();
-    py::array_t<double> out(t.shape(0));
-    auto o = out.mutable_unchecked<1>();
-    auto cpp_Fs = [&](std::complex<double> s) {
-        return Fs(s).cast<std::complex<double>>();
-    };
-    for (py::ssize_t i = 0; i < t.shape(0); ++i)
-        o(i) = algo(cpp_Fs, t(i));
-    return out;
-}
+    const nilt::DeHoog& a, py::function Fs, py::array_t<double> t)
+    { return array_call<nilt::DeHoog, std::complex<double>>(a, Fs, t); }
 
 // --- Module definition ------------------------------------------------------
 
