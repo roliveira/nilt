@@ -35,33 +35,30 @@ class TestDeHoogDomainError:
 
     def test_raises_for_t_zero(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(nilt.DeHoog(), Fs, 0.0)
+            nilt.invert(Fs, 0.0, method="DeHoog")
 
     def test_raises_for_t_negative(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(nilt.DeHoog(), Fs, -1.0)
+            nilt.invert(Fs, -1.0, method="DeHoog")
 
 
 class TestDeHoogDirectCallMatchesFreeFunction:
 
     def test_direct_call_identical_to_invert(self, Fs):
         algo = nilt.DeHoog()
-        assert nilt.invert(algo, Fs, 3.0) == algo(Fs, 3.0)
+        assert nilt.invert(Fs, 3.0, method="DeHoog") == algo(Fs, 3.0)
 
 
-class TestDeHoogArrayInput:
+class TestDeHoogIterableInput:
 
     def test_array_returns_ndarray_of_matching_length(self, Fs):
-        algo = nilt.DeHoog()
-        t = np.array([1.0, 2.0, 3.0])
-        result = nilt.invert(algo, Fs, t)
+        result = nilt.invert(Fs, [1.0, 2.0, 3.0], method="DeHoog")
         assert isinstance(result, np.ndarray)
         assert len(result) == 3
 
-    def test_array_elements_match_scalar_calls(self, Fs):
-        algo = nilt.DeHoog()
-        t_values = np.array([1.0, 2.0, 5.0])
-        array_result = nilt.invert(algo, Fs, t_values)
+    def test_iterable_elements_match_scalar_calls(self, Fs):
+        t_values = [1.0, 2.0, 5.0]
+        array_result = nilt.invert(Fs, t_values, method="DeHoog")
         for i, t in enumerate(t_values):
-            scalar_result = nilt.invert(algo, Fs, float(t))
+            scalar_result = nilt.invert(Fs, t, method="DeHoog")
             assert array_result[i] == pytest.approx(scalar_result, rel=1e-12)

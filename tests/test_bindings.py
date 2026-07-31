@@ -22,33 +22,62 @@ class TestModuleExportsAllSymbols:
         assert nilt.pi == pytest.approx(np.pi, rel=1e-15)
 
 
-class TestInvertDispatchRejectsInvalidAlgorithm:
+class TestInvertRejectsInvalidMethod:
 
-    def test_raises_for_string_algorithm(self, Fs):
-        with pytest.raises((TypeError, ValueError)):
-            nilt.invert("not_an_algo", Fs, 1.0)
+    def test_raises_for_unknown_method(self, Fs):
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, method="not_a_method")
 
-    def test_raises_for_int_algorithm(self, Fs):
-        with pytest.raises((TypeError, ValueError)):
-            nilt.invert(42, Fs, 1.0)
+    def test_raises_for_invalid_kwarg(self, Fs):
+        with pytest.raises(TypeError):
+            nilt.invert(Fs, 1.0, method="Stehfest", bad_param=42)
 
 
-class TestInvertDispatchScalarVsArray:
+class TestInvertScalarVsIterable:
 
     def test_scalar_input_returns_float(self, Fs):
-        result = nilt.invert(nilt.Talbot(), Fs, 1.0)
+        result = nilt.invert(Fs, 1.0)
+        assert isinstance(result, float)
+
+    def test_int_input_returns_float(self, Fs):
+        result = nilt.invert(Fs, 1)
         assert isinstance(result, float)
 
     def test_ndarray_input_returns_ndarray(self, Fs):
-        t = np.array([1.0, 2.0, 3.0])
-        result = nilt.invert(nilt.Talbot(), Fs, t)
+        result = nilt.invert(Fs, np.array([1.0, 2.0, 3.0]))
         assert isinstance(result, np.ndarray)
 
-    def test_single_element_array_returns_ndarray(self, Fs):
-        t = np.array([1.0])
-        result = nilt.invert(nilt.Talbot(), Fs, t)
+    def test_list_input_returns_ndarray(self, Fs):
+        result = nilt.invert(Fs, [1.0, 2.0, 3.0])
+        assert isinstance(result, np.ndarray)
+
+    def test_tuple_input_returns_ndarray(self, Fs):
+        result = nilt.invert(Fs, (1.0, 2.0))
+        assert isinstance(result, np.ndarray)
+
+    def test_single_element_list_returns_ndarray(self, Fs):
+        result = nilt.invert(Fs, [1.0])
         assert isinstance(result, np.ndarray)
         assert len(result) == 1
+
+
+class TestInvertMethodSelection:
+
+    def test_stehfest_is_default(self, Fs):
+        default_result = nilt.invert(Fs, 1.0)
+        explicit_result = nilt.invert(Fs, 1.0, method="Stehfest")
+        assert default_result == explicit_result
+
+    def test_method_is_case_insensitive(self, Fs):
+        r1 = nilt.invert(Fs, 1.0, method="stehfest")
+        r2 = nilt.invert(Fs, 1.0, method="STEHFEST")
+        r3 = nilt.invert(Fs, 1.0, method="Stehfest")
+        assert r1 == r2 == r3
+
+    def test_kwargs_passed_to_method(self, Fs):
+        r_default = nilt.invert(Fs, 1.0)
+        r_custom = nilt.invert(Fs, 1.0, N=6)
+        assert r_default != pytest.approx(r_custom, rel=1e-6)
 
 
 class TestStehfestBindingExposesMutableN:
@@ -62,13 +91,8 @@ class TestStehfestBindingExposesMutableN:
         assert algo.N == 10
 
     def test_modified_N_affects_result(self, Fs):
-        algo_default = nilt.Stehfest()
-        algo_small = nilt.Stehfest()
-        algo_small.N = 6
-
-        r_default = nilt.invert(algo_default, Fs, 1.0)
-        r_small = nilt.invert(algo_small, Fs, 1.0)
-
+        r_default = nilt.invert(Fs, 1.0)
+        r_small = nilt.invert(Fs, 1.0, N=6)
         assert r_default != pytest.approx(r_small, rel=1e-6)
 
 
