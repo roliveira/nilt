@@ -38,27 +38,27 @@ class TestTalbotInvalidArgument:
 
     def test_raises_for_N_less_than_1(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(Fs, 1.0, method="Talbot", N=0)
+            nilt.invert(Fs, 1.0, method="Talbot", options={"N": 0})
 
     def test_raises_for_N_negative(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(Fs, 1.0, method="Talbot", N=-5)
+            nilt.invert(Fs, 1.0, method="Talbot", options={"N": -5})
 
 
 class TestTalbotTableAndFallback:
 
     def test_N_in_table_range_produces_finite(self, Fs):
-        result = nilt.invert(Fs, 1.0, method="Talbot", N=64)
+        result = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 64})
         assert np.isfinite(result)
 
     def test_N_outside_table_range_produces_finite(self, Fs):
-        result = nilt.invert(Fs, 1.0, method="Talbot", N=100)
+        result = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 100})
         assert np.isfinite(result)
 
     def test_table_and_fallback_agree_at_boundary(self, Fs):
         """N=64 (table) and N=65 (fallback) should give similar results."""
-        r64 = nilt.invert(Fs, 1.0, method="Talbot", N=64)
-        r65 = nilt.invert(Fs, 1.0, method="Talbot", N=65)
+        r64 = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 64})
+        r65 = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 65})
         assert r64 == pytest.approx(r65, rel=0.01)
 
 

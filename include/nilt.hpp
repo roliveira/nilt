@@ -13,24 +13,34 @@
     Usage:
         #include <nilt.hpp>
 
-        // Scalar inversion
-        double f1 = nilt::invert(nilt::Talbot{}, [](auto s){ return 1.0/(s+1.0); }, 1.0);
+        // Default (Stehfest)
+        double f0 = nilt::invert([](auto s){ return 1.0/(s+1.0); }, 1.0);
 
-        // Vector inversion (algorithm is constructed once, reused for all t)
+        // Type-dispatched: pass an algorithm instance
+        double f1 = nilt::invert([](auto s){ return 1.0/(s+1.0); }, 1.0, nilt::Talbot{});
+
+        // Vector inversion
         std::vector<double> t = {0.1, 0.5, 1.0, 2.0, 5.0};
-        auto f = nilt::invert(nilt::Talbot{}, [](auto s){ return 1.0/(s+1.0); }, t);
+        auto f = nilt::invert([](auto s){ return 1.0/(s+1.0); }, t, nilt::Talbot{});
 
-        // With custom parameters
+        // With custom parameters (type-dispatched)
         nilt::Stehfest algo;
         algo.N = 12;
-        double f2 = nilt::invert(algo, my_func, 1.0);
+        double f2 = nilt::invert(my_func, 1.0, algo);
+
+        // String-dispatched (parallels the Python API)
+        double f3 = nilt::invert(my_func, 1.0, "Talbot", {{"N", 64}});
 */
 #ifndef NILT_HEADER
 #define NILT_HEADER
 
 #include <cmath>
 #include <complex>
+#include <iostream>
+#include <map>
 #include <stdexcept>
+#include <string>
+#include <type_traits>
 #include <vector>
 
 #include "stehfest.hpp"
@@ -45,9 +55,64 @@
 
 namespace nilt {
 
-/// Invert the Laplace transform Fs at a single time t.
-template<typename Algo, typename F>
-double invert(const Algo& algo, F&& Fs, double t)
+/// Store of named options for the string-dispatched `invert` overloads.
+/// Keys are per-method (e.g. "N", "SHIFT", "M", "T_FACTOR", "TOL"); values
+/// are stored as `double` and cast when the target field is `int`.  Unknown
+/// keys are ignored with a warning on stderr (parallels the Python API,
+/// which emits a `UserWarning`).
+using Options = std::map<std::string, double>;
+
+namespace detail {
+
+/// Trait: true if `T` is one of the three algorithm classes.  Restricts the
+/// type-dispatched `invert` overload so a string literal in the algorithm
+/// slot never binds to `Algo`.
+template<typename T>
+struct is_algo : std::integral_constant<bool,
+    std::is_same<typename std::decay<T>::type, Stehfest>::value ||
+    std::is_same<typename std::decay<T>::type, Talbot>::value   ||
+    std::is_same<typename std::decay<T>::type, DeHoog>::value> {};
+
+template<typename Algo>
+void apply_options(Algo& algo, const Options& options)
+{
+    for (const auto& kv : options) {
+        if (!algo.set_option(kv.first, kv.second)) {
+            std::cerr << "nilt::invert: unknown option '" << kv.first
+                      << "' for method " << Algo::name << "; ignored\n";
+        }
+    }
+}
+
+/// Instantiate the algorithm class whose `::name` matches `method` and
+/// forward it to `visitor`.  The visitor is a generic lambda that receives
+/// a mutable, default-constructed algo and returns the inversion result.
+/// Throws `std::invalid_argument` for an unknown name.
+///
+/// Adding a fourth algorithm means adding one line here plus one entry
+/// in `is_algo` above — the per-algorithm boilerplate that used to live
+/// in both `invert` overloads (build, apply options, call) is now written
+/// exactly once, at each call site, as the visitor body.
+template<typename Visitor>
+auto dispatch_by_name(const std::string& method, Visitor&& visitor)
+    -> decltype(visitor(std::declval<Stehfest&>()))
+{
+    if (method == Stehfest::name) { Stehfest a; return visitor(a); }
+    if (method == Talbot::name)   { Talbot   a; return visitor(a); }
+    if (method == DeHoog::name)   { DeHoog   a; return visitor(a); }
+    throw std::invalid_argument(
+        "nilt::invert: unknown method '" + method +
+        "'; valid: Stehfest, Talbot, DeHoog");
+}
+
+} // namespace detail
+
+// --- Type-dispatched overloads -----------------------------------------------
+
+/// Invert the Laplace transform Fs at a single time t using `algo`.
+template<typename F, typename Algo,
+         typename = std::enable_if_t<detail::is_algo<Algo>::value>>
+double invert(F&& Fs, double t, const Algo& algo)
 {
     return algo(std::forward<F>(Fs), t);
 }
@@ -55,13 +120,53 @@ double invert(const Algo& algo, F&& Fs, double t)
 /// Invert the Laplace transform Fs at multiple times.
 /// The algorithm instance is reused across all evaluations, so any
 /// precomputed tables (Stehfest coefficients, Talbot contour) are cached.
-template<typename Algo, typename F>
-std::vector<double> invert(const Algo& algo, F&& Fs, const std::vector<double>& t_values)
+template<typename F, typename Algo,
+         typename = std::enable_if_t<detail::is_algo<Algo>::value>>
+std::vector<double> invert(F&& Fs, const std::vector<double>& t_values, const Algo& algo)
 {
     std::vector<double> results(t_values.size());
     for (size_t i = 0; i < t_values.size(); ++i)
         results[i] = algo(Fs, t_values[i]);
     return results;
+}
+
+/// Default: Stehfest with default settings.
+template<typename F>
+double invert(F&& Fs, double t)
+{
+    return invert(std::forward<F>(Fs), t, Stehfest{});
+}
+
+template<typename F>
+std::vector<double> invert(F&& Fs, const std::vector<double>& t_values)
+{
+    return invert(std::forward<F>(Fs), t_values, Stehfest{});
+}
+
+// --- String-dispatched overloads ---------------------------------------------
+
+/// Invert Fs at time t using the method named by `method` ("Stehfest",
+/// "Talbot", or "DeHoog", case-sensitive) with the given `options`.
+/// Unknown option keys are ignored with a warning on stderr.
+template<typename F>
+double invert(F&& Fs, double t,
+              const std::string& method, const Options& options = {})
+{
+    return detail::dispatch_by_name(method, [&](auto& algo) {
+        detail::apply_options(algo, options);
+        return invert(std::forward<F>(Fs), t, algo);
+    });
+}
+
+/// Vector counterpart of the string-dispatched overload above.
+template<typename F>
+std::vector<double> invert(F&& Fs, const std::vector<double>& t_values,
+                           const std::string& method, const Options& options = {})
+{
+    return detail::dispatch_by_name(method, [&](auto& algo) {
+        detail::apply_options(algo, options);
+        return invert(std::forward<F>(Fs), t_values, algo);
+    });
 }
 
 } // namespace nilt

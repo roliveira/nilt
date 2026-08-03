@@ -42,15 +42,15 @@ def test_stehfest_exponential_decay(a, b, t):
     assume(abs(a) > 1e-3)
     assume(b * t <= 5.0)
     expected = a * math.exp(-b * t)
-    got = nilt.invert(lambda s: a / (s + b), t, method="stehfest")
+    got = nilt.invert(lambda s: a / (s + b), t, method="Stehfest")
     assert got == pytest.approx(expected, rel=1e-3, abs=1e-6)
 
 
 @given(a=_exp_a, b=_exp_b, t=_exp_t)
 @_HS_SETTINGS
 @pytest.mark.parametrize("algo_name,rtol,atol", [
-    ("talbot", 1e-6, 1e-8),
-    ("dehoog", 1e-8, 1e-10),
+    ("Talbot", 1e-6, 1e-8),
+    ("DeHoog", 1e-8, 1e-10),
 ])
 def test_talbot_dehoog_exponential_decay(algo_name, rtol, atol, a, b, t):
     assume(abs(a) > 1e-3)
@@ -72,8 +72,8 @@ _sin_t = st.floats(min_value=0.1, max_value=3.0,
 @given(w=_sin_w, t=_sin_t)
 @_HS_SETTINGS
 @pytest.mark.parametrize("algo_name,rtol,atol", [
-    ("talbot", 1e-4, 1e-5),
-    ("dehoog", 1e-6, 1e-8),
+    ("Talbot", 1e-4, 1e-5),
+    ("DeHoog", 1e-6, 1e-8),
 ])
 def test_talbot_dehoog_sine_pair(algo_name, rtol, atol, w, t):
     expected = math.sin(w * t)

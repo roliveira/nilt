@@ -13,12 +13,30 @@
 #include <pybind11/complex.h>
 #include <pybind11/functional.h>
 #include <cstring>
+#include <string>
 
 #include "nilt.hpp"
 #include "util.hpp"
 
 
 namespace py = pybind11;
+
+// Build an algo instance from **kwargs, routing each key through the C++
+// class's own set_option so the pybind ctor and the string-dispatched
+// C++ overload share one source of truth for valid option names.
+template<typename Algo>
+static Algo make_from_kwargs(py::kwargs kw)
+{
+    Algo a;
+    for (auto item : kw) {
+        std::string key = py::cast<std::string>(item.first);
+        double value = py::cast<double>(item.second);
+        if (!a.set_option(key, value))
+            throw py::type_error(
+                "Unknown option '" + key + "' for " + std::string(Algo::name));
+    }
+    return a;
+}
 
 // --- Batched forwarders ------------------------------------------------------
 // Each algo exposes two `eval_batched` overloads: per-t (single s-array) and
@@ -113,6 +131,7 @@ PYBIND11_MODULE(_nilt, m)
     py::class_<nilt::Stehfest>(m, "Stehfest",
         "Gaver-Stehfest algorithm (real-valued F(s)).")
         .def(py::init<>())
+        .def(py::init(&make_from_kwargs<nilt::Stehfest>))
         .def_readwrite("N", &nilt::Stehfest::N,
             "Number of terms (must be even, 2-20, default 18)")
         .def("__call__", &stehfest_scalar,
@@ -125,6 +144,7 @@ PYBIND11_MODULE(_nilt, m)
     py::class_<nilt::Talbot>(m, "Talbot",
         "Fixed Talbot algorithm (complex-valued F(s)).")
         .def(py::init<>())
+        .def(py::init(&make_from_kwargs<nilt::Talbot>))
         .def_readwrite("N", &nilt::Talbot::N,
             "Number of quadrature points (default 50, table-accelerated 8-64)")
         .def_readwrite("SHIFT", &nilt::Talbot::SHIFT,
@@ -139,6 +159,7 @@ PYBIND11_MODULE(_nilt, m)
     py::class_<nilt::DeHoog>(m, "DeHoog",
         "De Hoog et al. algorithm (complex-valued F(s)).")
         .def(py::init<>())
+        .def(py::init(&make_from_kwargs<nilt::DeHoog>))
         .def_readwrite("M", &nilt::DeHoog::M,
             "Order of approximation (default 40)")
         .def_readwrite("T_FACTOR", &nilt::DeHoog::T_FACTOR,

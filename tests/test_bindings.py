@@ -36,9 +36,18 @@ class TestInvertRejectsInvalidMethod:
         with pytest.raises(ValueError):
             nilt.invert(Fs, 1.0, method="not_a_method")
 
-    def test_raises_for_invalid_kwarg(self, Fs):
-        with pytest.raises(TypeError):
-            nilt.invert(Fs, 1.0, method="Stehfest", bad_param=42)
+    def test_lowercase_method_is_rejected(self, Fs):
+        # 4.0: canonical CamelCase only (parallels scipy method strings).
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, method="stehfest")
+
+    def test_unknown_option_warns_and_falls_back(self, Fs):
+        # 4.0: unknown options emit UserWarning (scipy convention) instead of
+        # raising - the valid keys are applied and the call still succeeds.
+        with pytest.warns(UserWarning, match="Unknown option 'bad_param'"):
+            result = nilt.invert(Fs, 1.0, method="Stehfest",
+                                 options={"bad_param": 42})
+        assert isinstance(result, float)
 
 
 class TestInvertScalarVsIterable:
@@ -76,15 +85,23 @@ class TestInvertMethodSelection:
         explicit_result = nilt.invert(Fs, 1.0, method="Stehfest")
         assert default_result == explicit_result
 
-    def test_method_is_case_insensitive(self, Fs):
-        r1 = nilt.invert(Fs, 1.0, method="stehfest")
-        r2 = nilt.invert(Fs, 1.0, method="STEHFEST")
-        r3 = nilt.invert(Fs, 1.0, method="Stehfest")
-        assert r1 == r2 == r3
+    def test_method_accepts_class(self, Fs):
+        r_str = nilt.invert(Fs, 1.0, method="Talbot")
+        r_cls = nilt.invert(Fs, 1.0, method=nilt.Talbot)
+        assert r_str == r_cls
 
-    def test_kwargs_passed_to_method(self, Fs):
+    def test_method_accepts_instance(self, Fs):
+        r_str = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 64})
+        r_inst = nilt.invert(Fs, 1.0, method=nilt.Talbot(N=64))
+        assert r_str == r_inst
+
+    def test_instance_with_options_raises(self, Fs):
+        with pytest.raises(TypeError, match="pre-configured"):
+            nilt.invert(Fs, 1.0, method=nilt.Talbot(), options={"N": 64})
+
+    def test_options_dict_passed_to_method(self, Fs):
         r_default = nilt.invert(Fs, 1.0)
-        r_custom = nilt.invert(Fs, 1.0, N=6)
+        r_custom = nilt.invert(Fs, 1.0, options={"N": 6})
         assert r_default != pytest.approx(r_custom, rel=1e-6)
 
 
@@ -100,7 +117,7 @@ class TestStehfestBindingExposesMutableN:
 
     def test_modified_N_affects_result(self, Fs):
         r_default = nilt.invert(Fs, 1.0)
-        r_small = nilt.invert(Fs, 1.0, N=6)
+        r_small = nilt.invert(Fs, 1.0, options={"N": 6})
         assert r_default != pytest.approx(r_small, rel=1e-6)
 
 
@@ -208,15 +225,15 @@ class TestMethodParamsDiscovery:
 
     def test_stehfest_params(self):
         from nilt._registry import _METHOD_PARAMS
-        assert _METHOD_PARAMS["stehfest"] == {"N"}
+        assert _METHOD_PARAMS["Stehfest"] == {"N"}
 
     def test_talbot_params(self):
         from nilt._registry import _METHOD_PARAMS
-        assert _METHOD_PARAMS["talbot"] == {"N", "SHIFT"}
+        assert _METHOD_PARAMS["Talbot"] == {"N", "SHIFT"}
 
     def test_dehoog_params(self):
         from nilt._registry import _METHOD_PARAMS
-        assert _METHOD_PARAMS["dehoog"] == {"M", "T_FACTOR", "TOL"}
+        assert _METHOD_PARAMS["DeHoog"] == {"M", "T_FACTOR", "TOL"}
 
     def test_discovery_picks_up_new_property_on_subclass(self):
         from nilt._registry import _discover_params

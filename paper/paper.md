@@ -27,18 +27,18 @@ bibliography: paper.bib
 
 NILT is a C++ header-only library (with Python bindings) that numerically inverts Laplace transforms using three algorithms: the Gaver-Stehfest method [@stehfest1970], the fixed Talbot contour [@abate2006], and the accelerated Fourier series of De Hoog et al. [@dehoog1982]. Users pass any callable $F(s)$ and a time $t$, the library returns $f(t) = \mathcal{L}^{-1}\{F\}(t)$.
 
-All three algorithms share the same two-argument interface in both C++ and Python:
+All three algorithms share the same three-argument interface in both C++ and Python:
 
 **Python**
 
 ```python
-nilt.invert(algorithm, F, t)
+nilt.invert(F, t, method="Stehfest", options={...})
 ```
 
 **C++**
 
 ```cpp
-nilt::invert(algorithm, F, t)
+nilt::invert(F, t, algorithm)
 ```
 
 The Stehfest algorithm requires that $F(s)$ be real-valued while Talbot and De Hoog operate on complex-valued transforms. Each algorithm exposes tunable parameters (number of terms, tolerance, contour shift) with defaults that work well for most problems.
@@ -74,7 +74,7 @@ These methods differ in which transforms they accept and how they trade speed fo
 
 NILT is a header-only C++ library. Including `<nilt.hpp>` pulls in `stehfest.hpp`, `talbot.hpp`, and `dehoog.hpp`. There are no linking step or external dependencies. Each algorithm is a struct with tunable parameters and an `operator()` that accepts any callable $F(s)$ and a time $t$.
 
-A *free* function `nilt::invert(algo, F, t)` provides a uniform entry point. The entire library is templated so there is no virtual dispatch and no heap allocation.
+A *free* function `nilt::invert(F, t, algo)` provides a uniform entry point. The entire library is templated so there is no virtual dispatch and no heap allocation.
 
 The Python layer is built with pybind11 and packaged via scikit-build-core. `Stehfest`, `Talbot`, and `DeHoog` mirror their C++ counterparts. The `invert` function accepts NumPy arrays, so evaluating $f(t)$ at a vector of time points is a single call. The Python binding tries to be as shallow as possible, with the NumPy arrays arguments being the main difference between each package. 
 

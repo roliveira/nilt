@@ -10,14 +10,17 @@ Quick start::
 
     import nilt
 
-    # scalar
+    # scalar, default method (Stehfest)
     f_1 = nilt.invert(lambda s: 1/(s+1), 1.0)
 
     # iterable (list, tuple, ndarray, ...)
     f_t = nilt.invert(lambda s: 1/(s+1), [0.1, 0.5, 1.0, 2.0, 5.0])
 
-    # different method with custom parameters
-    f_t = nilt.invert(lambda s: 1/(s+1), 1.0, method="Talbot", N=64)
+    # different method with custom parameters (scipy-style)
+    f_t = nilt.invert(lambda s: 1/(s+1), 1.0, method="Talbot", options={"N": 64})
+
+    # or pass a pre-configured instance
+    f_t = nilt.invert(lambda s: 1/(s+1), 1.0, method=nilt.Talbot(N=64))
 """
 
 from nilt._nilt import Stehfest, Talbot, DeHoog, pi

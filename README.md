@@ -28,8 +28,11 @@ NILT provides Stehfest, Talbot, and De Hoog in a dependency-free C++ header that
 ```cpp
 #include <nilt.hpp>
 
-// "Free" function - works with any callable 
-double f1 = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 1.0);
+// Default (Stehfest)
+double f0 = nilt::invert([](auto s) { return 1.0 / (s + 1.0); }, 1.0);
+
+// Type-dispatched: pass an algorithm instance
+double f1 = nilt::invert([](auto s) { return 1.0 / (s + 1.0); }, 1.0, nilt::Talbot{});
 
 // Direct algorithm call (equivalent)
 nilt::DeHoog dh;
@@ -37,12 +40,15 @@ double f2 = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
 
 // Vector of times (algorithm is constructed once, reused for all t)
 std::vector<double> t = {0.1, 0.5, 1.0, 2.0, 5.0};
-auto results = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, t);
+auto results = nilt::invert([](auto s) { return 1.0 / (s + 1.0); }, t, nilt::Talbot{});
 
-// Custom parameters (see Parameters section for full list)
+// Custom parameters via setters (see Parameters section for full list)
 nilt::Stehfest algo;
 algo.N = 12;
-double f3 = nilt::invert(algo, my_func, 1.0);
+double f3 = nilt::invert(my_func, 1.0, algo);
+
+// String-dispatched (parallels the Python API)
+double f4 = nilt::invert(my_func, 1.0, "Talbot", {{"N", 64}});
 ```
 
 **Python**
@@ -56,12 +62,14 @@ f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0)
 # Array of times (returns numpy array)
 f = nilt.invert(lambda s: 1.0 / (s + 1.0), [0.1, 0.5, 1.0, 2.0, 5.0])
 
-# Pick a different method, pass parameters as keyword arguments
-f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0, method="Talbot", N=64)
+# Pick a different method, pass parameters via `options` (scipy-style)
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0, method="Talbot", options={"N": 64})
+
+# Or pass a pre-configured instance directly
+f = nilt.invert(lambda s: 1.0 / (s + 1.0), 1.0, method=nilt.Talbot(N=64))
 
 # Class instances are callable directly (useful when reusing an algorithm)
-algo = nilt.DeHoog()
-algo.M = 60
+algo = nilt.DeHoog(M=60)
 f = algo(lambda s: 1.0 / (s + 1.0), 2.5)
 ```
 
@@ -101,7 +109,7 @@ algo.eval_batched(
     t.data(), out.data(), (int)t.size());   // one call, all t
 ```
 
-The pure-C++ `nilt::invert(algo, F, t_vec)` remains a fast scalar
+The pure-C++ `nilt::invert(F, t_vec, algo)` remains a fast scalar
 loop and is recommended when `F(s)` is cheap.
 
 
@@ -117,14 +125,16 @@ Three algorithms are implemented:
 
 All algorithms accept any callable via the free function or direct call:
 
-|               | C++                        | Python                                  |
-|---------------|----------------------------|------------------------------------------|
-| Free function | `nilt::invert(algo, F, t)` | `nilt.invert(F, t, method=..., **kwargs)` |
-| Direct call   | `algo(F, t)`               | `algo(F, t)`                             |
+|               | C++                            | Python                                        |
+|---------------|--------------------------------|-----------------------------------------------|
+| Free function | `nilt::invert(F, t, algo)`     | `nilt.invert(F, t, method=..., options={...})` |
+| Direct call   | `algo(F, t)`                   | `algo(F, t)`                                  |
 
-The Python free function selects the algorithm by name (case-insensitive) and
-forwards keyword arguments as parameters. The C++ free function takes an
-algorithm instance directly.
+Both the C++ and Python `invert` accept the method as either a compile-time
+type / instance (C++) or a canonical string / class / instance (Python).
+The canonical string method names are `"Stehfest"`, `"Talbot"`, `"DeHoog"`
+(case-sensitive).  Options are passed as an `Options` map in C++ or an
+`options` dict in Python; unknown option keys emit a warning and are ignored.
 
 
 ### Parameters

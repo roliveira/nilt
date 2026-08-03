@@ -26,7 +26,10 @@ class Stehfest:
     N: int
     """Number of terms (must be even, 2-20, default 18)."""
 
+    @overload
     def __init__(self) -> None: ...
+    @overload
+    def __init__(self, *, N: int = ...) -> None: ...
 
     @overload
     def __call__(
@@ -51,7 +54,10 @@ class Talbot:
     SHIFT: float
     """Real-axis contour shift (default 0.0)."""
 
+    @overload
     def __init__(self) -> None: ...
+    @overload
+    def __init__(self, *, N: int = ..., SHIFT: float = ...) -> None: ...
 
     @overload
     def __call__(
@@ -79,7 +85,10 @@ class DeHoog:
     TOL: float
     """Contour damping tolerance (default 1e-16)."""
 
+    @overload
     def __init__(self) -> None: ...
+    @overload
+    def __init__(self, *, M: int = ..., T_FACTOR: float = ..., TOL: float = ...) -> None: ...
 
     @overload
     def __call__(

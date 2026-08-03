@@ -34,7 +34,7 @@ void output_algorithm_table(const std::string& fname, FuncT ft, FuncS Fs, const 
     for (double t = 1.0; t <= 10.0; t += 1.0)
     {
         double fta = ft(t);
-        double ftn = nilt::invert(method, Fs, t);
+        double ftn = nilt::invert(Fs, t, method);
         // Guard against fta == 0 (or underflow) so the CSV never contains
         // inf/nan errors.
         double denom = std::max(std::abs(fta), 1e-30);

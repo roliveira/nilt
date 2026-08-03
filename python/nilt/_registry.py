@@ -1,12 +1,14 @@
-"""Algorithm registry and tunable-parameter discovery."""
+"""Algorithm registry, tunable-parameter discovery, and dispatcher."""
+
+import warnings
 
 from nilt._nilt import Stehfest, Talbot, DeHoog
 
 
 _METHODS = {
-    "stehfest": Stehfest,
-    "talbot":   Talbot,
-    "dehoog":   DeHoog,
+    "Stehfest": Stehfest,
+    "Talbot":   Talbot,
+    "DeHoog":   DeHoog,
 }
 
 
@@ -23,28 +25,73 @@ def _discover_params(cls):
 _METHOD_PARAMS = {key: _discover_params(cls) for key, cls in _METHODS.items()}
 
 
-def _select_algorithm(method, kwargs):
-    """Look up the algorithm class, instantiate it, and apply ``kwargs``.
+def _apply_options(algo, options, method_name):
+    """Apply ``options`` to ``algo`` in place; warn on unknown keys.
 
-    Raises ``ValueError`` for an unknown ``method`` and ``TypeError`` for an
-    unknown kwarg.
+    Matches scipy's convention (``scipy.optimize.minimize`` etc.):
+    unknown option keys emit a ``UserWarning`` and are otherwise ignored.
     """
-    key = method.lower()
-    if key not in _METHODS:
-        raise ValueError(
-            f"Unknown method '{method}'. "
-            f"Choose from: {', '.join(m.title() for m in _METHODS)}"
-        )
-
-    algo = _METHODS[key]()
-
-    valid = _METHOD_PARAMS[key]
-    for k, v in kwargs.items():
-        if k not in valid:
-            raise TypeError(
-                f"'{k}' is not a valid parameter for {method}. "
-                f"Valid parameters: {', '.join(sorted(valid))}"
+    valid = _METHOD_PARAMS[method_name]
+    for key, value in options.items():
+        if key in valid:
+            setattr(algo, key, value)
+        else:
+            warnings.warn(
+                f"Unknown option '{key}' for method {method_name}; ignored. "
+                f"Valid options: {sorted(valid)}",
+                UserWarning,
+                stacklevel=3,
             )
-        setattr(algo, k, v)
 
-    return algo
+
+def _select_algorithm(method, options):
+    """Resolve ``method`` (string, class, or instance) into a configured algo.
+
+    - String: canonical name in ``_METHODS`` (e.g. ``"Stehfest"``).  A fresh
+      instance is created and ``options`` (if given) is applied.
+    - Class: one of the algorithm classes.  A fresh instance is created and
+      ``options`` (if given) is applied.
+    - Instance: returned as-is; ``options`` must be ``None`` or empty.
+
+    Raises ``ValueError`` for an unknown method string, ``TypeError`` for a
+    method of the wrong type, or ``TypeError`` if ``options`` is combined
+    with a pre-configured instance.
+    """
+    if isinstance(method, str):
+        if method not in _METHODS:
+            raise ValueError(
+                f"Unknown method '{method}'. "
+                f"Choose from: {', '.join(_METHODS)}"
+            )
+        algo = _METHODS[method]()
+        if options:
+            _apply_options(algo, options, method)
+        return algo
+
+    if isinstance(method, type):
+        # A class object (e.g. ``method=Talbot``).
+        matches = [name for name, cls in _METHODS.items() if cls is method]
+        if not matches:
+            raise TypeError(
+                f"method class must be one of {list(_METHODS.values())}; "
+                f"got {method!r}"
+            )
+        name = matches[0]
+        algo = method()
+        if options:
+            _apply_options(algo, options, name)
+        return algo
+
+    # Assume instance.  Verify it's one of ours.
+    matches = [name for name, cls in _METHODS.items() if isinstance(method, cls)]
+    if not matches:
+        raise TypeError(
+            f"method must be a string, class, or instance of "
+            f"{list(_METHODS.values())}; got {type(method).__name__}"
+        )
+    if options:
+        raise TypeError(
+            "options cannot be combined with a pre-configured method "
+            "instance; either drop options or pass the method by name/class"
+        )
+    return method

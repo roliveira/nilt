@@ -16,6 +16,7 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <string>
 #include <array>
 #include <memory>
 #include <vector>
@@ -87,6 +88,15 @@ public:
     
     int N = 18;  // number of terms (must be even, 2 <= N <= 20)
 
+    /// Apply a named option.  Returns true if `key` is known to this method,
+    /// false otherwise.  Used by the string-dispatched `nilt::invert(F, t,
+    /// "Stehfest", {...})` entry point to route the options map.
+    bool set_option(const std::string& key, double value)
+    {
+        if (key == "N") { N = static_cast<int>(value); return true; }
+        return false;
+    }
+
     /// Evaluate the inverse Laplace transform at time t.
     /// @param Fs  Laplace-domain function: Fs(double s) -> double
     /// @param t   Evaluation time (must be > 0)
@@ -152,7 +162,7 @@ public:
     /// `nt * N` s-values across every time in `t[0..nt-1]`.  Ideal for
     /// bindings inverting whole arrays: one Python round-trip per call
     /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
-    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    /// `nilt::invert(Fs, t_vec)` which loops the fused scalar path.
     template<typename Fbatch>
     void eval_batched(Fbatch&& Fs_batched,
                       const double* t, double* out, int nt) const

@@ -71,9 +71,9 @@ int main()
         {
             ofs << t
                 << "," << analytical_pt(t)
-                << "," << nilt::invert(stehfest, Fs_pt, t)
-                << "," << nilt::invert(talbot,   Fs_pt, t)
-                << "," << nilt::invert(dehoog,   Fs_pt, t)
+                << "," << nilt::invert(Fs_pt, t, stehfest)
+                << "," << nilt::invert(Fs_pt, t, talbot)
+                << "," << nilt::invert(Fs_pt, t, dehoog)
                 << std::endl;
         }
         std::cout << "cpp_transport_advection_plume_2d.csv" << std::endl;
@@ -117,7 +117,7 @@ int main()
                         return M / (2.0 * nilt::util::PI * D) * std::exp(v * xx / (2.0 * D))
                                * bessel::K0(rr * kappa);
                     };
-                    nilt_val = nilt::invert(talbot, Fs_xy, t_snap);
+                    nilt_val = nilt::invert(Fs_xy, t_snap, talbot);
                 }
 
                 ofs << xx << "," << yy << "," << anal << "," << nilt_val << std::endl;
