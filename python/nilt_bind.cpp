@@ -36,13 +36,25 @@ struct NumpyBatched
         const size_t nz = static_cast<size_t>(n);
         py::array_t<S> s_arr(n);
         std::memcpy(s_arr.mutable_data(), s, nz * sizeof(S));
-        // Force a C-contiguous cast so `.data()` matches logical element order
-        // even if Fs returns a strided/mis-typed array.
-        auto f_arr = Fs(s_arr).template cast<
-            py::array_t<S, py::array::c_style | py::array::forcecast>>();
-        if (static_cast<size_t>(f_arr.size()) != nz)
+
+        // Call Fs, then coerce whatever it returned into a numpy array with
+        // the right dtype.  A missing/mistyped return surfaces here rather
+        // than as a cryptic pybind11 cast error deep in the stack trace.
+        py::object raw = Fs(s_arr);
+        py::array_t<S, py::array::c_style | py::array::forcecast> f_arr;
+        try {
+            f_arr = raw.cast<
+                py::array_t<S, py::array::c_style | py::array::forcecast>>();
+        } catch (const py::cast_error&) {
+            throw py::type_error(
+                "Fs must return a numpy array with the same dtype as its input; "
+                "got " + std::string(py::str(raw.get_type())));
+        }
+        const size_t got = static_cast<size_t>(f_arr.size());
+        if (got != nz)
             throw py::value_error(
-                "Fs must return an array of the same length as its input");
+                "Fs returned an array of length " + std::to_string(got) +
+                "; expected " + std::to_string(nz));
         std::memcpy(out, f_arr.data(), nz * sizeof(S));
     }
 };
