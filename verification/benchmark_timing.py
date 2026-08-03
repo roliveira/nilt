@@ -4,14 +4,12 @@ tuning parameter is varied for each algorithm.
 Uses func4: F(s) = 1/(s+1), f(t) = exp(-t) as the test function (cheap to
 evaluate so the timings reflect the algorithm cost, not the user function).
 
-Output: py_benchmark_timing.csv with columns
-  method, param, time_us  (microseconds per single inversion at t=1)
+Output: py_benchmark_timing.csv with columns method, param, time_us.
 """
 
-import os
+import csv
 import time
 
-import numpy as np
 import nilt
 
 WARMUP  = 50
@@ -24,6 +22,12 @@ def Fs_real(s):
 
 def Fs_cplx(s):
     return 1.0 / (s + 1.0)
+
+
+STEHFEST_NS = [4, 6, 8, 10, 12, 14, 16, 18, 20]
+TALBOT_NS   = [1, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60,
+               64, 68, 72, 76, 80, 84, 88, 92, 96, 100]
+DEHOOG_MS   = [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]
 
 
 def time_inversion(algo, Fs):
@@ -41,31 +45,27 @@ def time_inversion(algo, Fs):
 
 out = "py_benchmark_timing.csv"
 
-with open(out, "w") as f:
-    f.write("method,param,time_us\n")
+with open(out, "w", newline="") as f:
+    w = csv.writer(f)
+    w.writerow(["method", "param", "time_us"])
 
-    # Stehfest: vary N (must be even)
-    for N in [4, 6, 8, 10, 12, 14, 16, 18, 20]:
-        algo = nilt.Stehfest()
-        algo.N = N
+    for N in STEHFEST_NS:
+        algo = nilt.Stehfest(); algo.N = N
         us = time_inversion(algo, Fs_real)
-        f.write(f"Stehfest,{N},{us:.6f}\n")
+        w.writerow(["Stehfest", N, f"{us:.6f}"])
         print(f"Stehfest  N={N:3d}  {us:.1f} us")
 
-    # Talbot: vary N
-    for N in [1, 4, 8, 12, 16, 20, 24, 28, 32, 36, 40, 44, 48, 52, 56, 60, 64, 68, 72, 76, 80, 84, 88, 92, 96, 100]:
-        algo = nilt.Talbot()
-        algo.N = N
+    for N in TALBOT_NS:
+        algo = nilt.Talbot(); algo.N = N
         us = time_inversion(algo, Fs_cplx)
-        f.write(f"Talbot,{N},{us:.6f}\n")
+        w.writerow(["Talbot", N, f"{us:.6f}"])
         print(f"Talbot    N={N:3d}  {us:.1f} us")
 
-    # DeHoog: vary M
-    for M in [5, 10, 15, 20, 30, 40, 50, 60, 80, 100, 120, 150, 200]:
-        algo = nilt.DeHoog()
-        algo.M = M
+    for M in DEHOOG_MS:
+        algo = nilt.DeHoog(); algo.M = M
         us = time_inversion(algo, Fs_cplx)
-        f.write(f"DeHoog,{M},{us:.6f}\n")
+        w.writerow(["DeHoog", M, f"{us:.6f}"])
         print(f"DeHoog    M={M:3d}  {us:.1f} us")
 
 print(out)
+

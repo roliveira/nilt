@@ -201,3 +201,29 @@ class TestArrayCallBatchesFs:
         t_bad = np.array([1.0, 2.0, 0.0])
         with pytest.raises((ValueError, RuntimeError)):
             algo(Fs, t_bad)
+
+
+class TestMethodParamsDiscovery:
+    """`_METHOD_PARAMS` mirrors the pybind11-exposed UPPER_SNAKE properties."""
+
+    def test_stehfest_params(self):
+        from nilt import _METHOD_PARAMS
+        assert _METHOD_PARAMS["stehfest"] == {"N"}
+
+    def test_talbot_params(self):
+        from nilt import _METHOD_PARAMS
+        assert _METHOD_PARAMS["talbot"] == {"N", "SHIFT"}
+
+    def test_dehoog_params(self):
+        from nilt import _METHOD_PARAMS
+        assert _METHOD_PARAMS["dehoog"] == {"M", "T_FACTOR", "TOL"}
+
+    def test_discovery_picks_up_new_property_on_subclass(self):
+        from nilt import _discover_params
+
+        class Fake:
+            EXTRA = property(lambda self: 0.0)
+            N = property(lambda self: 1)
+            lower_ignored = property(lambda self: None)
+
+        assert _discover_params(Fake) == {"N", "EXTRA"}

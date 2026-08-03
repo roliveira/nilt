@@ -39,11 +39,18 @@ _METHODS = {
     "dehoog":   DeHoog,
 }
 
-_METHOD_PARAMS = {
-    "stehfest": {"N"},
-    "talbot":   {"N", "SHIFT"},
-    "dehoog":   {"M", "T_FACTOR", "TOL"},
-}
+
+def _discover_params(cls):
+    """Return the set of UPPER_SNAKE tunable attributes on ``cls``.
+
+    Discovered at import time from the pybind11-exposed descriptors so a new
+    knob added on the C++ side surfaces here automatically.
+    """
+    return {name for name in dir(cls)
+            if name.isupper() and isinstance(getattr(cls, name), property)}
+
+
+_METHOD_PARAMS = {key: _discover_params(cls) for key, cls in _METHODS.items()}
 
 
 def invert(Fs, t, method="Stehfest", **kwargs):
