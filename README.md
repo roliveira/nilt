@@ -29,11 +29,11 @@ NILT provides Stehfest, Talbot, and De Hoog in a dependency-free C++ header that
 #include <nilt.hpp>
 
 // "Free" function - works with any callable 
-double f = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 1.0);
+double f1 = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0); }, 1.0);
 
 // Direct algorithm call (equivalent)
 nilt::DeHoog dh;
-double f = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
+double f2 = dh([](auto s) { return 1.0 / (s + 1.0); }, 2.5);
 
 // Vector of times (algorithm is constructed once, reused for all t)
 std::vector<double> t = {0.1, 0.5, 1.0, 2.0, 5.0};
@@ -42,7 +42,7 @@ auto results = nilt::invert(nilt::Talbot{}, [](auto s) { return 1.0 / (s + 1.0);
 // Custom parameters (see Parameters section for full list)
 nilt::Stehfest algo;
 algo.N = 12;
-double f = nilt::invert(algo, my_func, 1.0);
+double f3 = nilt::invert(algo, my_func, 1.0);
 ```
 
 **Python**
@@ -135,10 +135,10 @@ Each algorithm exposes tunable parameters (identical names in C++ and Python):
 |-------|-----------|---------|-------------|
 | Stehfest | `N` | 18 | Number of terms (must be even) |
 | Talbot   | `N` | 50 | Number of quadrature points |
-| Talbot   | `SHIFT` | 0.0 | Contour shift parameter |
+| Talbot   | `SHIFT` | 0.0 | Real-axis shift of the Talbot contour; use `SHIFT > 0` when `F(s)` has poles on or near the imaginary axis |
 | DeHoog   | `M` | 40 | Order of approximation |
 | DeHoog   | `T_FACTOR` | 4.0 | Period factor ($T = T_{\text{FACTOR}} \cdot t$) |
-| DeHoog   | `TOL` | 1e-16 | Tolerance for integration limit |
+| DeHoog   | `TOL` | 1e-16 | Contour damping tolerance; controls contour damping via $\gamma = -\ln(\mathrm{TOL})/(2T)$. Smaller = less damping. NOT an iteration convergence tolerance |
 
 
 ## Test Functions
@@ -278,7 +278,7 @@ current working directory, so run them from `build/`:
 cd build
 ./groundwater_theis_well                           # C++ -> cpp_*.csv
 python ../examples/groundwater/theis_well.py       # Python -> py_*.csv
-python ../examples/groundwater/plot_theis_well.py  # reads *_.csv, writes *.png
+python ../examples/groundwater/plot_theis_well.py  # reads *.csv, writes *.png
 ```
 
 

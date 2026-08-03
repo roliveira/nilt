@@ -43,7 +43,7 @@ nilt::invert(algorithm, F, t)
 
 The Stehfest algorithm requires that $F(s)$ be real-valued while Talbot and De Hoog operate on complex-valued transforms. Each algorithm exposes tunable parameters (number of terms, tolerance, contour shift) with defaults that work well for most problems.
 
-The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evlauating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@oliveira2020,oliveira2021,@oliveira2023].
+The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evaluating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@oliveira2020,oliveira2021,@oliveira2023].
 
 # Statement of need
 
@@ -51,8 +51,8 @@ Many problems in physics and engineering are easier to solve in the Laplace doma
 
 Existing tools are scattered:
 
-- MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
-- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementation is far slower when you need to invert at thousands of points.
+- MATLAB's `ilaplace` implements an inverse Laplace transform but it has no access to individual methods or parameters within it, and does not offer an open-source license. 
+- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well), but it is written in pure Python with arbitrary-precision arithmetic. A Python-first implementation is far slower when you need to invert at thousands of points.
 - The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the application (transient spectroscopy). 
 - No other C++ library packages multiple algorithms behind a common interface.
 
