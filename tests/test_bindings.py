@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import re
 
 import nilt
 
@@ -20,6 +21,13 @@ class TestModuleExportsAllSymbols:
 
     def test_pi_constant_matches_numpy(self):
         assert nilt.pi == pytest.approx(np.pi, rel=1e-15)
+
+    def test_version_is_semver_ish(self):
+        assert isinstance(nilt.__version__, str)
+        assert nilt.__version__
+        # Accept X.Y.Z with an optional pre-release / build suffix so 4.0.0rc1
+        # and 0.0.0+unknown (dev fallback) both pass.
+        assert re.match(r"^\d+\.\d+\.\d+", nilt.__version__)
 
 
 class TestInvertRejectsInvalidMethod:
