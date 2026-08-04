@@ -2,6 +2,44 @@
 
 <!-- version list -->
 
+## v4.0.0 (2026-08-04)
+
+### Bug Fixes
+
+- Addressing editor's comment ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Paper typos and readme disambimguations ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Test for hypothesis ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+### Features
+
+- Add cmake version macro and match from python ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Add property tests and discoverable parameters for python
+  ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Add type checking ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Enhance Python bindings with type checking and refactor invert
+  ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Refactor binding and python module, and fix bug with number types
+  ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+- Reorder invert() args and move method options under options=
+  ([#38](https://github.com/roliveira/nilt/pull/38),
+  [`1b4b44f`](https://github.com/roliveira/nilt/commit/1b4b44f4cc5aa29347de0268039e5d670643eeab))
+
+
 ## v3.2.0 (2026-07-31)
 
 ### Bug Fixes

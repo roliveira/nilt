@@ -1,6 +1,6 @@
 [project]
 name = "nilt-python"
-version = "3.2.0"
+version = "4.0.0"
 description = "NILT: Numerical Inverse Laplace Transform Methods"
 readme = "README.md"
 license = {text = "MIT"}
