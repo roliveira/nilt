@@ -20,6 +20,7 @@
 #include <cmath>
 #include <complex>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "util.hpp"
@@ -35,6 +36,17 @@ public:
     int    M        = 40;       // order of approximation (2M+1 function evaluations)
     double T_FACTOR = 4.0;      // period factor: T = T_FACTOR * t (controls aliasing)
     double TOL      = 1.0e-16;  // Bromwich contour damping: gamma = -ln(TOL)/(2T)
+
+    /// Apply a named option.  Returns true if `key` is known to this method,
+    /// false otherwise.  Used by the string-dispatched `nilt::invert(F, t,
+    /// "DeHoog", {...})` entry point to route the options map.
+    bool set_option(const std::string& key, double value)
+    {
+        if (key == "M")        { M = static_cast<int>(value); return true; }
+        if (key == "T_FACTOR") { T_FACTOR = value;             return true; }
+        if (key == "TOL")      { TOL = value;                  return true; }
+        return false;
+    }
 
     /// Evaluate the inverse Laplace transform at time t.
     /// @param Fs  Laplace-domain function: Fs(complex<double>) -> complex<double>
@@ -195,7 +207,7 @@ public:
     /// `nt * (2M+1)` s-values across every time in `t[0..nt-1]`. Ideal for
     /// bindings inverting whole arrays: one Python round-trip per call
     /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
-    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    /// `nilt::invert(Fs, t_vec)` which loops the fused scalar path.
     template<typename Fbatch>
     void eval_batched(Fbatch&& Fs_batched,
                       const double* t, double* out, int nt) const

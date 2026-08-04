@@ -27,23 +27,23 @@ bibliography: paper.bib
 
 NILT is a C++ header-only library (with Python bindings) that numerically inverts Laplace transforms using three algorithms: the Gaver-Stehfest method [@stehfest1970], the fixed Talbot contour [@abate2006], and the accelerated Fourier series of De Hoog et al. [@dehoog1982]. Users pass any callable $F(s)$ and a time $t$, the library returns $f(t) = \mathcal{L}^{-1}\{F\}(t)$.
 
-All three algorithms share the same two-argument interface in both C++ and Python:
+All three algorithms share the same three-argument interface in both C++ and Python:
 
 **Python**
 
 ```python
-nilt.invert(algorithm, F, t)
+nilt.invert(F, t, method="Stehfest", options={...})
 ```
 
 **C++**
 
 ```cpp
-nilt::invert(algorithm, F, t)
+nilt::invert(F, t, algorithm)
 ```
 
 The Stehfest algorithm requires that $F(s)$ be real-valued while Talbot and De Hoog operate on complex-valued transforms. Each algorithm exposes tunable parameters (number of terms, tolerance, contour shift) with defaults that work well for most problems.
 
-The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evlauating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@oliveira2020,oliveira2021,@oliveira2023].
+The Python bindings are built with pybind11 and accept both scalars and NumPy array arguments. If using Python and evaluating over a list of scalars, it is more efficient to use NumPy arrays as arguments. The library was originally developed for continuous time random walk simulations of reactive transport in porous media [@oliveira2020,oliveira2021,@oliveira2023].
 
 # Statement of need
 
@@ -51,8 +51,8 @@ Many problems in physics and engineering are easier to solve in the Laplace doma
 
 Existing tools are scattered:
 
-- MATLAB's `ilaplace` implements a inverse Laplace transform but it has no access to individual methods or parameters within it, and do not offer open-source license. 
-- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well) but is written in pure Python with arbitrary-precision arithmetic, but a Python-first implementation is far slower when you need to invert at thousands of points.
+- MATLAB's `ilaplace` implements an inverse Laplace transform but it has no access to individual methods or parameters within it, and does not offer an open-source license. 
+- Python's `mpmath.invertlaplace` provides all three families of methods (and Cohen method as well), but it is written in pure Python with arbitrary-precision arithmetic. A Python-first implementation is far slower when you need to invert at thousands of points.
 - The [`ilt`](https://github.com/nocliper/ilt) package wraps a single algorithm and it provides an implementation that is too tightly integrated to the application (transient spectroscopy). 
 - No other C++ library packages multiple algorithms behind a common interface.
 
@@ -68,13 +68,13 @@ The fixed Talbot contour, in the formulation of Abate and Whitt [@abate2006], de
 
 De Hoog et al. [@dehoog1982] accelerate the Fourier series representation of the inverse transform using a quotient-difference algorithm. Like Talbot, it works with complex $F(s)$ and can handle discontinuities.
 
-These methods differ in which transforms they accept and how they trade speed for accuracy. Packaging them behind one interface makes it easy to cross-check results or swap algorithms when one performs poorly on a given problem.
+These methods differ in which transforms they accept and how they trade speed for accuracy. Packaging them behind one interface makes it easy to cross-check results or swap algorithms when one performs poorly on a given problem. NILT grew out of the author's PhD work on reactive transport modelling with continuous time random walks [@oliveira2021], in which different Laplace-domain kernels within the same simulation called for different inverters; the library packages that experience as a reusable component.
 
 # Software design
 
 NILT is a header-only C++ library. Including `<nilt.hpp>` pulls in `stehfest.hpp`, `talbot.hpp`, and `dehoog.hpp`. There are no linking step or external dependencies. Each algorithm is a struct with tunable parameters and an `operator()` that accepts any callable $F(s)$ and a time $t$.
 
-A *free* function `nilt::invert(algo, F, t)` provides a uniform entry point. The entire library is templated so there is no virtual dispatch and no heap allocation.
+A *free* function `nilt::invert(F, t, algo)` provides a uniform entry point. The entire library is templated so there is no virtual dispatch and no heap allocation.
 
 The Python layer is built with pybind11 and packaged via scikit-build-core. `Stehfest`, `Talbot`, and `DeHoog` mirror their C++ counterparts. The `invert` function accepts NumPy arrays, so evaluating $f(t)$ at a vector of time points is a single call. The Python binding tries to be as shallow as possible, with the NumPy arrays arguments being the main difference between each package. 
 
@@ -86,6 +86,29 @@ The repository contains 10 verification functions drawn from Stehfest [@stehfest
 - 2-D advection-diffusion plume [@bear1979]
 
 Each example exists as both a C++ executable and a Python script that compare all three algorithms against the known analytical solution.
+
+## Installation and usage
+
+The Python package is published on PyPI as `nilt-python`:
+
+```bash
+pip install nilt-python
+```
+
+The C++ headers install through CMake and can be consumed with `find_package(nilt REQUIRED)`; full instructions are in the repository README.
+
+A minimal Python example inverts $F(s) = 1/(s+1)$ (analytical $f(t) = e^{-t}$) at a vector of times:
+
+```python
+import numpy as np
+import nilt
+
+F = lambda s: 1.0 / (s + 1.0)
+t = np.linspace(0.1, 5.0, 50)
+f = nilt.invert(F, t, method="Talbot", options={"N": 64})
+```
+
+Swapping method is a one-word change: `method="Stehfest"` or `method="DeHoog"`. The corresponding C++ call is `nilt::invert(F, t, nilt::Talbot{})`. More runnable examples (groundwater, transport, verification) are available in `examples/` and `verification/`.
 
 ## Verification
 
@@ -100,11 +123,11 @@ The verification suite evaluates all three methods against 10 known Laplace tran
 | 5  | 2.523e-01 | 2.523e-01 | 4.24e-06 | 2.523e-01 | 4.87e-12 | 2.523e-01 | 5.06e-14 |
 | 10 | 1.784e-01 | 1.784e-01 | 5.70e-06 | 1.784e-01 | 4.84e-12 | 1.784e-01 | 6.02e-14 |
 
-![Verification of all three algorithms against $f(t) = 1/\sqrt{\pi t}$. Top: numerical inversions overlaid on the analytical solution. Bottom: relative error on a log scale. \label{fig:verification}](verification_func1.png)
+![Verification of all three algorithms against $f(t) = 1/\sqrt{\pi t}$. Top: numerical inversions overlaid on the analytical solution. Bottom: relative error on a log scale. \label{fig:verification}](verification_func1.png){ width=70% }
 
 \autoref{fig:timing} shows timing per inversion call as a function of the algorithm parameter (N, n, or M) for $F(s) = 1/(s+1)$ at $t = 1$. Solid lines are C++, dashed lines are Python. The Python bindings add minimal overhead since the inversion itself runs in compiled C++. Stehfest is the cheapest at low parameter counts, De Hoog becomes the most expensive at high orders. Talbot sits in between.
 
-![Time per inversion ($\mu$s) vs algorithm parameter for C++ (solid) and Python (dashed). The Python overhead is small because the inversion runs in compiled code. \label{fig:timing}](benchmark_timing.png)
+![Time per inversion ($\mu$s) vs algorithm parameter for C++ (solid) and Python (dashed). The Python overhead is small because the inversion runs in compiled code. \label{fig:timing}](benchmark_timing.png){ width=70% }
 
 ## Selected example: groundwater well dipole
 
@@ -114,9 +137,9 @@ The well dipole example (\autoref{fig:dipole_time}, \autoref{fig:dipole_spatial}
 
 \autoref{fig:dipole_spatial} shows the net drawdown field at $t = 2$ h. The pumping well (bottom-left) draws water down, the injection well (top-right) pushes it up, and the asymmetric contours reflect their different rates. This is the kind of spatial field that requires thousands of pointwise inversions, when a compiled backend matters.
 
-![Net drawdown vs time for the well dipole. Top: all three algorithms overlaid on the analytical solution. Bottom: relative error. \label{fig:dipole_time}](groundwater_well_dipole.png)
+![Net drawdown vs time for the well dipole. Top: all three algorithms overlaid on the analytical solution. Bottom: relative error. \label{fig:dipole_time}](groundwater_well_dipole.png){ width=50% }
 
-![Spatial drawdown field at $t = 2$ h for the pumping-injection dipole. The pumping well ($\blacktriangledown$) and injection well ($\blacktriangle$) produce an asymmetric drawdown pattern. \label{fig:dipole_spatial}](groundwater_well_dipole_spatial.png)
+![Spatial drawdown field at $t = 2$ h for the pumping-injection dipole. The pumping well ($\blacktriangledown$) and injection well ($\blacktriangle$) produce an asymmetric drawdown pattern. \label{fig:dipole_spatial}](groundwater_well_dipole_spatial.png){ width=50% }
 
 # Research impact
 

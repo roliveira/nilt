@@ -19,6 +19,7 @@
 #include <cmath>
 #include <complex>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "util.hpp"
@@ -99,6 +100,16 @@ public:
 
     int    N     = 50;     // number of quadrature points (any N >= 1; table-accelerated for 8-64)
     double SHIFT = 0.0;    // real-axis shift of integration contour
+
+    /// Apply a named option.  Returns true if `key` is known to this method,
+    /// false otherwise.  Used by the string-dispatched `nilt::invert(F, t,
+    /// "Talbot", {...})` entry point to route the options map.
+    bool set_option(const std::string& key, double value)
+    {
+        if (key == "N")     { N = static_cast<int>(value); return true; }
+        if (key == "SHIFT") { SHIFT = value;               return true; }
+        return false;
+    }
 
     /// Evaluate the inverse Laplace transform at time t.
     /// @param Fs  Laplace-domain function: Fs(complex<double>) -> complex<double>
@@ -221,7 +232,7 @@ public:
     /// `nt * N` contour points across every time in `t[0..nt-1]`.  Ideal for
     /// bindings inverting whole arrays: one Python round-trip per call
     /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
-    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    /// `nilt::invert(Fs, t_vec)` which loops the fused scalar path.
     template<typename Fbatch>
     void eval_batched(Fbatch&& Fs_batched,
                       const double* t, double* out, int nt) const

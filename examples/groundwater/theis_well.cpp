@@ -117,9 +117,9 @@ int main()
         {
             ofs << t
                 << "," << analytical(r_obs, t)
-                << "," << nilt::invert(stehfest, Fs_time, t)
-                << "," << nilt::invert(talbot,   Fs_time, t)
-                << "," << nilt::invert(dehoog,   Fs_time, t)
+                << "," << nilt::invert(Fs_time, t, stehfest)
+                << "," << nilt::invert(Fs_time, t, talbot)
+                << "," << nilt::invert(Fs_time, t, dehoog)
                 << std::endl;
         }
         std::cout << "cpp_groundwater_theis_well_time.csv" << std::endl;
@@ -140,9 +140,9 @@ int main()
             };
             ofs << r
                 << "," << analytical(r, t_snap)
-                << "," << nilt::invert(stehfest, Fs_r, t_snap)
-                << "," << nilt::invert(talbot,   Fs_r, t_snap)
-                << "," << nilt::invert(dehoog,   Fs_r, t_snap)
+                << "," << nilt::invert(Fs_r, t_snap, stehfest)
+                << "," << nilt::invert(Fs_r, t_snap, talbot)
+                << "," << nilt::invert(Fs_r, t_snap, dehoog)
                 << std::endl;
         }
         std::cout << "cpp_groundwater_theis_well_distance.csv" << std::endl;

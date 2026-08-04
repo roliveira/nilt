@@ -18,8 +18,8 @@ TEST_CASE("Stehfest name is really Stehfest", "[stehfest][name]")
 TEST_CASE("Stehfest throws domain_error for t <= 0", "[stehfest][domain]")
 {
     nilt::Stehfest algo;
-    REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>,  0.0), std::domain_error);
-    REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, -1.0), std::domain_error);
+    REQUIRE_THROWS_AS(nilt::invert(Fs4<double>, 0.0, algo), std::domain_error);
+    REQUIRE_THROWS_AS(nilt::invert(Fs4<double>, -1.0, algo), std::domain_error);
 }
 
 TEST_CASE("Stehfest throws invalid_argument for odd N or N < 2 or N > 20",
@@ -31,21 +31,21 @@ TEST_CASE("Stehfest throws invalid_argument for odd N or N < 2 or N > 20",
     {
         CAPTURE(N);
         algo.N = N;
-        REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, 1.0), std::invalid_argument);
+        REQUIRE_THROWS_AS(nilt::invert(Fs4<double>, 1.0, algo), std::invalid_argument);
     }
 
     for (int N : {0, -2, -4, -6})
     {
         CAPTURE(N);
         algo.N = N;
-        REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, 1.0), std::invalid_argument);
+        REQUIRE_THROWS_AS(nilt::invert(Fs4<double>, 1.0, algo), std::invalid_argument);
     }
 
     for (int N : {22, 24, 26})
     {
         CAPTURE(N);
         algo.N = N;
-        REQUIRE_THROWS_AS(nilt::invert(algo, Fs4<double>, 1.0), std::invalid_argument);
+        REQUIRE_THROWS_AS(nilt::invert(Fs4<double>, 1.0, algo), std::invalid_argument);
     }
 }
 
@@ -80,8 +80,8 @@ TEST_CASE("Stehfest accepts lambda returning real", "[stehfest][callable]")
 {
     nilt::Stehfest algo;
     auto Fs = [](double s) { return Fs4<double>(s); };
-    double via_lambda = nilt::invert(algo, Fs, 1.0);
-    double via_fptr   = nilt::invert(algo, Fs4<double>, 1.0);
+    double via_lambda = nilt::invert(Fs, 1.0, algo);
+    double via_fptr   = nilt::invert(Fs4<double>, 1.0, algo);
     REQUIRE(std::isfinite(via_lambda));
     REQUIRE_THAT(via_lambda, WithinRel(via_fptr, 1e-12));
 }
@@ -90,7 +90,7 @@ TEST_CASE("Stehfest direct call matches free function",
           "[stehfest][api]")
 {
     nilt::Stehfest algo;
-    double via_free = nilt::invert(algo, Fs4<double>, 3.0);
+    double via_free = nilt::invert(Fs4<double>, 3.0, algo);
     double via_call = algo(Fs4<double>, 3.0);
     REQUIRE(via_free == via_call);
 }

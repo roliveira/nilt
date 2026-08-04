@@ -114,9 +114,9 @@ int main()
         {
             ofs << t
                 << "," << analytical_obs(t)
-                << "," << nilt::invert(stehfest, Fs_obs, t)
-                << "," << nilt::invert(talbot,   Fs_obs, t)
-                << "," << nilt::invert(dehoog,   Fs_obs, t)
+                << "," << nilt::invert(Fs_obs, t, stehfest)
+                << "," << nilt::invert(Fs_obs, t, talbot)
+                << "," << nilt::invert(Fs_obs, t, dehoog)
                 << std::endl;
         }
         std::cout << "cpp_groundwater_well_dipole.csv" << std::endl;
@@ -151,7 +151,7 @@ int main()
                     return Qp / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(dp * sa)
                          - Qi / (2.0 * nilt::util::PI * T_aq * s) * bessel::K0(di * sa);
                 };
-                double nilt_val = nilt::invert(talbot, Fs_xy, t_snap);
+                double nilt_val = nilt::invert(Fs_xy, t_snap, talbot);
 
                 ofs << xx << "," << yy << "," << anal << "," << nilt_val << std::endl;
             }

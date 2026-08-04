@@ -1,5 +1,6 @@
 import pytest
 import numpy as np
+import re
 
 import nilt
 
@@ -21,6 +22,13 @@ class TestModuleExportsAllSymbols:
     def test_pi_constant_matches_numpy(self):
         assert nilt.pi == pytest.approx(np.pi, rel=1e-15)
 
+    def test_version_is_semver_ish(self):
+        assert isinstance(nilt.__version__, str)
+        assert nilt.__version__
+        # Accept X.Y.Z with an optional pre-release / build suffix so 4.0.0rc1
+        # and 0.0.0+unknown (dev fallback) both pass.
+        assert re.match(r"^\d+\.\d+\.\d+", nilt.__version__)
+
 
 class TestInvertRejectsInvalidMethod:
 
@@ -28,9 +36,18 @@ class TestInvertRejectsInvalidMethod:
         with pytest.raises(ValueError):
             nilt.invert(Fs, 1.0, method="not_a_method")
 
-    def test_raises_for_invalid_kwarg(self, Fs):
-        with pytest.raises(TypeError):
-            nilt.invert(Fs, 1.0, method="Stehfest", bad_param=42)
+    def test_lowercase_method_is_rejected(self, Fs):
+        # 4.0: canonical CamelCase only (parallels scipy method strings).
+        with pytest.raises(ValueError):
+            nilt.invert(Fs, 1.0, method="stehfest")
+
+    def test_unknown_option_warns_and_falls_back(self, Fs):
+        # 4.0: unknown options emit UserWarning (scipy convention) instead of
+        # raising - the valid keys are applied and the call still succeeds.
+        with pytest.warns(UserWarning, match="Unknown option 'bad_param'"):
+            result = nilt.invert(Fs, 1.0, method="Stehfest",
+                                 options={"bad_param": 42})
+        assert isinstance(result, float)
 
 
 class TestInvertScalarVsIterable:
@@ -68,15 +85,23 @@ class TestInvertMethodSelection:
         explicit_result = nilt.invert(Fs, 1.0, method="Stehfest")
         assert default_result == explicit_result
 
-    def test_method_is_case_insensitive(self, Fs):
-        r1 = nilt.invert(Fs, 1.0, method="stehfest")
-        r2 = nilt.invert(Fs, 1.0, method="STEHFEST")
-        r3 = nilt.invert(Fs, 1.0, method="Stehfest")
-        assert r1 == r2 == r3
+    def test_method_accepts_class(self, Fs):
+        r_str = nilt.invert(Fs, 1.0, method="Talbot")
+        r_cls = nilt.invert(Fs, 1.0, method=nilt.Talbot)
+        assert r_str == r_cls
 
-    def test_kwargs_passed_to_method(self, Fs):
+    def test_method_accepts_instance(self, Fs):
+        r_str = nilt.invert(Fs, 1.0, method="Talbot", options={"N": 64})
+        r_inst = nilt.invert(Fs, 1.0, method=nilt.Talbot(N=64))
+        assert r_str == r_inst
+
+    def test_instance_with_options_raises(self, Fs):
+        with pytest.raises(TypeError, match="pre-configured"):
+            nilt.invert(Fs, 1.0, method=nilt.Talbot(), options={"N": 64})
+
+    def test_options_dict_passed_to_method(self, Fs):
         r_default = nilt.invert(Fs, 1.0)
-        r_custom = nilt.invert(Fs, 1.0, N=6)
+        r_custom = nilt.invert(Fs, 1.0, options={"N": 6})
         assert r_default != pytest.approx(r_custom, rel=1e-6)
 
 
@@ -92,7 +117,7 @@ class TestStehfestBindingExposesMutableN:
 
     def test_modified_N_affects_result(self, Fs):
         r_default = nilt.invert(Fs, 1.0)
-        r_small = nilt.invert(Fs, 1.0, N=6)
+        r_small = nilt.invert(Fs, 1.0, options={"N": 6})
         assert r_default != pytest.approx(r_small, rel=1e-6)
 
 
@@ -193,3 +218,125 @@ class TestArrayCallBatchesFs:
         t_bad = np.array([1.0, 2.0, 0.0])
         with pytest.raises((ValueError, RuntimeError)):
             algo(Fs, t_bad)
+
+
+class TestMethodParamsDiscovery:
+    """`_METHOD_PARAMS` mirrors the pybind11-exposed UPPER_SNAKE properties."""
+
+    def test_stehfest_params(self):
+        from nilt._registry import _METHOD_PARAMS
+        assert _METHOD_PARAMS["Stehfest"] == {"N"}
+
+    def test_talbot_params(self):
+        from nilt._registry import _METHOD_PARAMS
+        assert _METHOD_PARAMS["Talbot"] == {"N", "SHIFT"}
+
+    def test_dehoog_params(self):
+        from nilt._registry import _METHOD_PARAMS
+        assert _METHOD_PARAMS["DeHoog"] == {"M", "T_FACTOR", "TOL"}
+
+    def test_discovery_picks_up_new_property_on_subclass(self):
+        from nilt._registry import _discover_params
+
+        class Fake:
+            EXTRA = property(lambda self: 0.0)
+            N = property(lambda self: 1)
+            lower_ignored = property(lambda self: None)
+
+        assert _discover_params(Fake) == {"N", "EXTRA"}
+
+
+class TestInvertBoundaryValidation:
+    """A1: Python-level ``t`` validation before anything crosses into C++."""
+
+    def test_rejects_complex_scalar(self, Fs):
+        with pytest.raises(TypeError, match="complex"):
+            nilt.invert(Fs, 1.0 + 0j)
+
+    def test_rejects_numpy_complex_scalar(self, Fs):
+        with pytest.raises(TypeError, match="complex"):
+            nilt.invert(Fs, np.complex128(1.5))
+
+    def test_rejects_decimal(self, Fs):
+        from decimal import Decimal
+        with pytest.raises(TypeError, match="Decimal"):
+            nilt.invert(Fs, Decimal("1.5"))
+
+    def test_rejects_fraction(self, Fs):
+        from fractions import Fraction
+        with pytest.raises(TypeError, match="Fraction"):
+            nilt.invert(Fs, Fraction(3, 2))
+
+    def test_rejects_zero_scalar(self, Fs):
+        with pytest.raises(ValueError, match="positive"):
+            nilt.invert(Fs, 0.0)
+
+    def test_rejects_negative_scalar(self, Fs):
+        with pytest.raises(ValueError, match="positive"):
+            nilt.invert(Fs, -1.0)
+
+    def test_rejects_2d_array(self, Fs):
+        t = np.array([[1.0, 2.0], [3.0, 4.0]])
+        with pytest.raises(ValueError, match="1-D"):
+            nilt.invert(Fs, t)
+
+    def test_rejects_empty_array(self, Fs):
+        with pytest.raises(ValueError, match="non-empty"):
+            nilt.invert(Fs, np.array([], dtype=np.float64))
+
+    def test_rejects_array_with_zero(self, Fs):
+        with pytest.raises(ValueError, match="positive"):
+            nilt.invert(Fs, np.array([1.0, 0.0, 2.0]))
+
+    def test_rejects_array_with_negative(self, Fs):
+        with pytest.raises(ValueError, match="positive"):
+            nilt.invert(Fs, np.array([1.0, -0.5, 2.0]))
+
+    def test_rejects_array_with_nan(self, Fs):
+        with pytest.raises(ValueError, match="finite"):
+            nilt.invert(Fs, np.array([1.0, np.nan, 2.0]))
+
+    def test_rejects_array_with_inf(self, Fs):
+        with pytest.raises(ValueError, match="finite"):
+            nilt.invert(Fs, np.array([1.0, np.inf, 2.0]))
+
+    def test_accepts_python_list(self, Fs):
+        got = nilt.invert(Fs, [0.5, 1.0, 2.0])
+        assert isinstance(got, np.ndarray)
+        assert got.shape == (3,)
+
+    def test_accepts_python_tuple(self, Fs):
+        got = nilt.invert(Fs, (0.5, 1.0, 2.0))
+        assert isinstance(got, np.ndarray)
+        assert got.shape == (3,)
+
+    def test_accepts_int_scalar(self, Fs):
+        got = nilt.invert(Fs, 2)
+        assert isinstance(got, float)
+
+    def test_accepts_numpy_float_scalar(self, Fs):
+        got = nilt.invert(Fs, np.float64(1.5))
+        assert isinstance(got, float)
+
+
+class TestFsReturnValueValidation:
+    """A2: ``NumpyBatched`` reports clear errors when Fs returns garbage."""
+
+    def test_fs_returning_list_raises_type_error(self):
+        # A plain Python list of floats is happily coerced by numpy but we
+        # want the error surface to be predictable.  The forcecast covers
+        # this case cleanly (list -> ndarray) so it succeeds; the failure
+        # mode is a non-numeric return.
+        algo = nilt.Stehfest()
+        with pytest.raises((TypeError, ValueError)):
+            algo(lambda s: "not-an-array", 1.0)
+
+    def test_fs_returning_wrong_length_raises_value_error(self):
+        algo = nilt.Stehfest()
+        with pytest.raises(ValueError, match="length"):
+            algo(lambda s: np.zeros(len(s) - 1), 1.0)
+
+    def test_fs_returning_none_raises(self):
+        algo = nilt.Stehfest()
+        with pytest.raises((TypeError, ValueError)):
+            algo(lambda s: None, 1.0)

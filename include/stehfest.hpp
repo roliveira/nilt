@@ -16,7 +16,9 @@
 
 #include <cmath>
 #include <stdexcept>
+#include <string>
 #include <array>
+#include <memory>
 #include <vector>
 #include <algorithm>
 
@@ -86,6 +88,15 @@ public:
     
     int N = 18;  // number of terms (must be even, 2 <= N <= 20)
 
+    /// Apply a named option.  Returns true if `key` is known to this method,
+    /// false otherwise.  Used by the string-dispatched `nilt::invert(F, t,
+    /// "Stehfest", {...})` entry point to route the options map.
+    bool set_option(const std::string& key, double value)
+    {
+        if (key == "N") { N = static_cast<int>(value); return true; }
+        return false;
+    }
+
     /// Evaluate the inverse Laplace transform at time t.
     /// @param Fs  Laplace-domain function: Fs(double s) -> double
     /// @param t   Evaluation time (must be > 0)
@@ -151,7 +162,7 @@ public:
     /// `nt * N` s-values across every time in `t[0..nt-1]`.  Ideal for
     /// bindings inverting whole arrays: one Python round-trip per call
     /// instead of nt.  Pure C++ callers with a cheap Fs should prefer
-    /// `nilt::invert(algo, Fs, t_vec)` which loops the fused scalar path.
+    /// `nilt::invert(Fs, t_vec)` which loops the fused scalar path.
     template<typename Fbatch>
     void eval_batched(Fbatch&& Fs_batched,
                       const double* t, double* out, int nt) const
@@ -162,8 +173,11 @@ public:
             if (t[i] <= 0.0)
                 throw std::domain_error("Stehfest: t must be positive");
 
-        std::vector<double> s(static_cast<size_t>(nt) * N);
-        std::vector<double> fv(static_cast<size_t>(nt) * N);
+        // Avoid the zero-init that std::vector<double>(n) does; the buffers
+        // are written before they are read.
+        const size_t buf_size = static_cast<size_t>(nt) * static_cast<size_t>(N);
+        std::unique_ptr<double[]> s(new double[buf_size]);
+        std::unique_ptr<double[]> fv(new double[buf_size]);
 
         for (int i = 0; i < nt; ++i)
         {
@@ -172,7 +186,7 @@ public:
                 s[i * N + k] = (k + 1) * ln2t;
         }
 
-        Fs_batched(s.data(), fv.data(), nt * N);
+        Fs_batched(s.get(), fv.get(), nt * N);
 
         const double* coeff = &CONST_COEFFICIENT_RAW_MATRIX.data[(N / 2 - 1) * 21];
         for (int i = 0; i < nt; ++i)

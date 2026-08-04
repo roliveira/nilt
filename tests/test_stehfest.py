@@ -30,15 +30,15 @@ class TestStehfestInvalidArgument:
     
     def test_raises_for_N_odd(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(Fs, 1.0, N=5)
+            nilt.invert(Fs, 1.0, options={"N": 5})
 
     def test_raises_for_N_too_small(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(Fs, 1.0, N=0)
+            nilt.invert(Fs, 1.0, options={"N": 0})
 
     def test_raises_for_N_too_large(self, Fs):
         with pytest.raises(ValueError):
-            nilt.invert(Fs, 1.0, N=22)
+            nilt.invert(Fs, 1.0, options={"N": 22})
 
 
 class TestStehfestDirectCallMatchesFreeFunction:

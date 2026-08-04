@@ -85,9 +85,9 @@ int main()
     {
         ofs << t
             << "," << analytical(t)
-            << "," << nilt::invert(stehfest, Fs, t)
-            << "," << nilt::invert(talbot,   Fs, t)
-            << "," << nilt::invert(dehoog,   Fs, t)
+            << "," << nilt::invert(Fs, t, stehfest)
+            << "," << nilt::invert(Fs, t, talbot)
+            << "," << nilt::invert(Fs, t, dehoog)
             << std::endl;
     }
 
@@ -112,7 +112,7 @@ int main()
         };
 
         // No analytical series (would need J0/J1); use NILT for both columns.
-        double val = nilt::invert(talbot, Fs_r, t_snap);
+        double val = nilt::invert(Fs_r, t_snap, talbot);
         ofs2 << ri << "," << val << "," << val << std::endl;
     }
     std::cout << "cpp_transport_cylinder_diffusion_spatial.csv" << std::endl;

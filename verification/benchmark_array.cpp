@@ -29,13 +29,13 @@ double time_array(const Algo& algo, Fs&& F, const std::vector<double>& t)
     volatile double sink = 0.0;
 
     for (int i = 0; i < WARMUP; ++i) {
-        auto r = nilt::invert(algo, F, t);
+        auto r = nilt::invert(F, t, algo);
         sink = r.empty() ? 0.0 : r.front();
     }
 
     auto t0 = std::chrono::high_resolution_clock::now();
     for (int i = 0; i < REPEATS; ++i) {
-        auto r = nilt::invert(algo, F, t);
+        auto r = nilt::invert(F, t, algo);
         sink = r.empty() ? 0.0 : r.front();
     }
     auto t1 = std::chrono::high_resolution_clock::now();

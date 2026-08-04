@@ -13,12 +13,23 @@ option(NILT_BUILD_EXAMPLES      "Build the example executables"       OFF)
 option(NILT_BUILD_TESTS         "Build and register CTest tests"      OFF)
 option(NILT_BUILD_VERIFICATION  "Build the verification executables"  OFF)
 
+# generated version header (nilt/version.hpp)
+set(NILT_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(NILT_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(NILT_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/include/nilt/version.hpp.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/nilt/version.hpp"
+    @ONLY
+)
+
 # header-only library target
 add_library(nilt INTERFACE       )
 add_library(nilt::nilt ALIAS nilt)
 
 target_include_directories(nilt INTERFACE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}/generated>
     $<INSTALL_INTERFACE:include>
 )
 
@@ -50,6 +61,7 @@ if(NILT_BUILD_TESTS)
         tests/test_stehfest.cpp
         tests/test_talbot.cpp
         tests/test_dehoog.cpp
+        tests/test_version.cpp
     )
     target_link_libraries(
         nilt_tests PRIVATE nilt nilt_warnings
@@ -100,6 +112,12 @@ install(TARGETS nilt EXPORT niltTargets)
 install(DIRECTORY include/
     DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
     FILES_MATCHING PATTERN "*.hpp"
+)
+
+# generated version header (kept next to the shipped nilt/*.hpp headers)
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/generated/nilt/version.hpp"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/nilt"
 )
 
 install(EXPORT niltTargets

@@ -67,9 +67,9 @@ int main()
     {
         ofs << t
             << "," << analytical(t)
-            << "," << nilt::invert(stehfest, Fs, t)
-            << "," << nilt::invert(talbot,   Fs, t)
-            << "," << nilt::invert(dehoog,   Fs, t)
+            << "," << nilt::invert(Fs, t, stehfest)
+            << "," << nilt::invert(Fs, t, talbot)
+            << "," << nilt::invert(Fs, t, dehoog)
             << std::endl;
     }
 
